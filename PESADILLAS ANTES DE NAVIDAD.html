@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PESADILLA ANTES DE NAVIDAD - DESAFÍO EDUCATIVO / PRIMARIA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-principal: #040814;
+            --bg-panel: #0d1326;
+            --azul-pesadilla: #2b3a67;
+            --morado-oscura: #4b2e83;
+            --gris-hueso: #e0e6ed;
+            --rojo-navidad: #d62828;
+            --verde-zombie: #38b000;
+            --amarillo-luna: #ffb703;
+            --texto-claro: #f8f9fa;
+            --eq1: #4b2e83; --eq2: #d62828; --eq3: #38b000; --eq4: #ffb703; --eq5: #00b4d8; --eq6: #f72585;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: radial-gradient(circle at center, #131b2e 0%, #080d1a 60%, #02040a 100%);
+            background-attachment: fixed;
+            color: var(--texto-claro);
+            margin: 0; padding: 0; overflow-x: hidden;
+            display: flex; flex-direction: column; min-height: 100vh; user-select: none;
+        }
+
+        .ventana-ciber {
+            border: 3px solid var(--azul-pesadilla);
+            background: rgba(13, 19, 38, 0.95);
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 0 25px rgba(43, 58, 103, 0.6), inset 0 0 15px rgba(0, 0, 0, 0.8);
+            max-width: 850px;
+            width: 90%;
+            margin: 20px auto;
+            position: relative;
+        }
+
+        .badge-lateral {
+            position: absolute;
+            padding: 8px 15px;
+            font-family: 'Creepster', cursive;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.9);
+            z-index: 10;
+            letter-spacing: 1px;
+        }
+        .badge-tutoria { background: var(--morado-oscura); color: var(--gris-hueso); top: -15px; left: 15px; border: 1px solid var(--azul-pesadilla); }
+        .badge-primaria { background: var(--rojo-navidad); color: #fff; top: -15px; right: 15px; font-weight: 900; }
+
+        .screen { display: none; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; padding: 20px; text-align: center; animation: fadeIn 0.5s ease-out; }
+        .screen.active { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+
+        h1.titulo-juego {
+            font-family: 'Creepster', cursive; font-size: clamp(2rem, 5.5vw, 3.5rem);
+            color: var(--amarillo-luna); letter-spacing: 2px; line-height: 1.1;
+            text-shadow: 0 0 15px rgba(255, 183, 3, 0.6), 3px 3px 0 #000;
+            margin: 15px 0;
+        }
+
+        .selector-equipos { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 15px 0; }
+        .btn-jug {
+            width: 55px; height: 55px; border-radius: 12px; border: 2px solid var(--azul-pesadilla);
+            font-size: 1.5rem; font-family: 'Creepster', cursive; cursor: pointer; background: var(--bg-panel); color: white;
+            transition: 0.2s;
+        }
+        .btn-jug.seleccionado { background: var(--morado-oscura); color: #fff; font-weight: 900; transform: scale(1.1); box-shadow: 0 0 15px var(--morado-oscura); }
+
+        .game-header {
+            display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 5px;
+            font-family: 'Creepster', cursive; font-size: 1.2rem; letter-spacing: 1px;
+        }
+        .nivel-text { color: var(--amarillo-luna); }
+        .pregunta-text { color: #aaa; font-family: 'Nunito', sans-serif; font-size: 0.9rem; }
+
+        .progress-container { width: 100%; height: 8px; background: #000; border-radius: 4px; margin-top: 5px; overflow: hidden; border: 1px solid var(--azul-pesadilla); }
+        .progress-bar { height: 100%; background: var(--amarillo-luna); width: 0%; transition: width 0.3s; box-shadow: 0 0 8px var(--amarillo-luna); }
+        .dots-container { display: flex; justify-content: space-between; margin: 12px 0; padding: 0 5px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: #222; transition: 0.3s; }
+        .dot.active { background: var(--amarillo-luna); box-shadow: 0 0 10px var(--amarillo-luna); transform: scale(1.3); }
+        .dot.passed { background: var(--verde-zombie); }
+
+        .timer-container {
+            width: 100%; background: #000; height: 20px; border-radius: 10px; margin-bottom: 10px; overflow: hidden; border: 2px solid var(--azul-pesadilla); position: relative;
+        }
+        #timer-bar { height: 100%; background: linear-gradient(90deg, var(--verde-zombie), var(--amarillo-luna), var(--rojo-navidad)); transition: width 1s linear; }
+
+        #icono-nivel-container { font-size: 3.5rem; margin: 10px 0; min-height: 70px; display: flex; align-items: center; justify-content: center; gap: 15px; }
+        .emoji-grande { animation: pulse 2s infinite; display: inline-block; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+        .btn-accion {
+            padding: 12px 35px; font-size: 1.4rem; font-family: 'Creepster', cursive; letter-spacing: 1px; border-radius: 30px;
+            border: 2px solid var(--azul-pesadilla); background: var(--morado-oscura); color: white; cursor: pointer;
+            box-shadow: 0 0 15px rgba(75, 46, 131, 0.5); transition: all 0.2s; margin-top: 15px; text-transform: uppercase;
+        }
+        .btn-accion:hover { background: var(--amarillo-luna); color: #000; box-shadow: 0 0 20px var(--amarillo-luna); }
+
+        .btn-audio {
+            background: rgba(43, 58, 103, 0.3); border: 2px solid var(--azul-pesadilla); color: white;
+            padding: 8px 18px; border-radius: 20px; cursor: pointer; font-family: 'Creepster', cursive;
+            font-size: 1.1rem; margin-bottom: 15px; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; letter-spacing: 1px;
+        }
+        .btn-audio:hover { background: var(--azul-pesadilla); color: #fff; }
+
+        .caja-explicativa {
+            font-size: 1.25rem; line-height: 1.6; text-align: left; padding: 22px;
+            background: rgba(0,0,0,0.75); border-radius: 15px; margin-bottom: 20px;
+            border: 1px solid var(--azul-pesadilla); box-shadow: inset 0 0 10px rgba(0,0,0,0.9);
+        }
+        .caja-explicativa ul { margin: 10px 0 0 0; padding-left: 25px; }
+        .caja-explicativa li { margin-bottom: 10px; }
+
+        .btn-evento-flotante { position: absolute; top: -25px; width: 60px; height: 60px; cursor: pointer; z-index: 10; border: none; background: transparent; }
+        #ciber-policia-container { left: 15px; font-size: 3.8rem; filter: drop-shadow(0 0 10px var(--amarillo-luna)); }
+        #btn-ruleta-container { right: 15px; font-size: 3.5rem; filter: drop-shadow(0 0 10px var(--rojo-navidad)); }
+
+        .panel-pregunta { background: var(--bg-panel); color: white; width: 95%; max-width: 800px; border-radius: 20px; padding: 25px; border: 2px solid var(--azul-pesadilla); position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.9); }
+        #contenedor-opciones { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .btn-opcion { background: #040814; border: 1px solid #1c274c; padding: 15px; font-size: 1rem; color: white; font-weight: 700; border-radius: 10px; cursor: pointer; text-align: left; transition: 0.2s; }
+        .btn-opcion:hover { border-color: var(--amarillo-luna); background: #131b2e; }
+        .btn-opcion.correcta { background: var(--verde-zombie) !important; color: #000; font-weight: 900; }
+        .btn-opcion.incorrecta { background: var(--rojo-navidad) !important; color: white; }
+
+        #contenedor-marcadores { display: flex; gap: 10px; width: 100%; justify-content: center; flex-wrap: wrap; margin-bottom: 15px; }
+        .marcador-eq { width: 110px; padding: 8px; border-radius: 10px; background: #0d1326; opacity: 0.6; border: 2px solid transparent; }
+        .marcador-eq.marcador-activo { opacity: 1; transform: scale(1.05); border-color: var(--amarillo-luna); box-shadow: 0 0 10px var(--amarillo-luna); }
+
+        .ruleta-wrapper { position: relative; width: 220px; height: 220px; margin: 15px auto; border-radius: 50%; border: 6px solid var(--amarillo-luna); overflow: hidden; }
+        .ruleta-bg { width: 100%; height: 100%; background: conic-gradient(#4b2e83 0% 20%, #d62828 20% 40%, #38b000 40% 60%, #ffb703 60% 80%, #00b4d8 80% 100%); transition: transform 3s cubic-bezier(0.1, 0.8, 0.1, 1); }
+        .ruleta-pointer { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 20px solid var(--gris-hueso); z-index: 5; }
+        
+        .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.92); z-index:10000; align-items:center; justify-content:center; }
+        .modal-content { background: var(--bg-panel); color: white; padding: 25px; border-radius: 20px; text-align: center; max-width: 420px; width: 90%; border: 2px solid var(--amarillo-luna); box-shadow: 0 0 25px var(--amarillo-luna); }
+
+        .puntos-flow { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Creepster', cursive; font-size: 4rem; z-index: 9999; pointer-events: none; animation: puntosFlowUp 2s ease-out forwards; display: none; }
+        #puntos-flow-gold { color: var(--amarillo-luna); text-shadow: 0 0 20px var(--amarillo-luna); }
+        #puntos-flow-error { color: var(--rojo-navidad); text-shadow: 0 0 20px var(--rojo-navidad); }
+        @keyframes puntosFlowUp { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } 20% { opacity: 1; transform: translate(-50%, -60%) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -200px) scale(0.8); } }
+        
+        .rank-fila { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; margin: 8px 0; border-radius: 10px; background: rgba(255,255,255,0.05); border-left: 8px solid transparent; font-family: 'Creepster', cursive; font-size: 1.4rem; letter-spacing: 1px; }
+        .rank-1 { background: rgba(255, 183, 3, 0.2); border: 1px solid var(--amarillo-luna); transform: scale(1.03); }
+
+        .diploma-container { background: #040814; color: white; border: 4px solid var(--amarillo-luna); padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 0 40px rgba(255, 183, 3, 0.4); max-width: 800px; }
+
+        .autor-credito {
+            margin-top: 15px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--amarillo-luna);
+            text-shadow: 0 0 5px rgba(255, 183, 3, 0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- EFECTOS DE PUNTOS -->
+    <div id="puntos-flow-gold" class="puntos-flow">+100</div>
+    <div id="puntos-flow-error" class="puntos-flow">-50</div>
+
+    <!-- PANTALLA INICIAL -->
+    <div id="screen-inicio" class="screen active">
+        <div class="ventana-ciber">
+            <div class="badge-lateral badge-tutoria">CIUDAD DE HALLOWEEN</div>
+            <div class="badge-lateral badge-primaria">EDUCACIÓN PRIMARIA</div>
+            <h1 class="titulo-juego">PESADILLA ANTES DE NAVIDAD 🎃🎄</h1>
+            <p style="font-weight: 700; color: var(--amarillo-luna); margin: 5px 0;">Junta de Andalucía - Cuestionario Interactivo sobre la Historia, Personajes y Creatividad de Tim Burton</p>
+            
+            <div style="font-size: 4.5rem; margin: 20px 0; display: flex; justify-content: center; gap: 20px;">
+                <span class="emoji-grande">💀</span>
+                <span class="emoji-grande" style="animation-delay: 0.3s;">🎃</span>
+                <span class="emoji-grande" style="animation-delay: 0.6s;">🎄</span>
+            </div>
+            
+            <p style="font-size: 1.1rem; font-weight: 700;">Selecciona número de equipos:</p>
+            <div class="selector-equipos">
+                <button class="btn-jug" onclick="seleccionarJugadores(1)">1</button>
+                <button class="btn-jug" onclick="seleccionarJugadores(2)">2</button>
+                <button class="btn-jug seleccionado" onclick="seleccionarJugadores(3)">3</button>
+                <button class="btn-jug" onclick="seleccionarJugadores(4)">4</button>
+                <button class="btn-jug" onclick="seleccionarJugadores(5)">5</button>
+                <button class="btn-jug" onclick="seleccionarJugadores(6)">6</button>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.6); padding: 12px; border-radius: 10px; margin: 15px 0; border: 1px solid var(--azul-pesadilla);">
+                <label style="cursor: pointer; font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <input type="checkbox" id="check-tiempo" checked style="transform: scale(1.4);"> Temporizador de la Espiral (30 seg por reto)
+                </label>
+            </div>
+
+            <button class="btn-accion" onclick="irACiberconvivencia()">¡CRUZAR EL ÁRBOL MÁGICO!</button>
+            <div class="autor-credito">Aplicación elaborada por el maestro Carlos Garrido</div>
+        </div>
+    </div>
+
+    <!-- PANTALLA EXPLICATIVA 1: LA IDEA Y EL ARTE DE TIM BURTON -->
+    <div id="screen-ciberconvivencia" class="screen">
+        <div class="ventana-ciber">
+            <h1 style="color: var(--amarillo-luna);">¿CÓMO NACIÓ ESTA HISTORIA? ✍️🌙</h1>
+            <button class="btn-audio" onclick="leerCiberconvivencia()">🔊 Escuchar Explicación</button>
+            
+            <div class="caja-explicativa">
+                <p style="margin-top:0;"><strong>Pesadilla antes de Navidad</strong> nació de un poema escrito por el cineasta <strong>Tim Burton</strong> cuando trabajaba como animador en los años 80.</p>
+                <p>Curiosidades del origen y la técnica:</p>
+                <ul>
+                    <li><strong>Inspiración en las tiendas:</strong> A Tim Burton le fascinaba ver cómo los escaparates cambiaban la decoración de Halloween por la de Navidad casi en el mismo instante.</li>
+                    <li><strong>Técnica de Stop-Motion:</strong> Se grabó fotograma a fotograma moviendo marionetas reales de madera y silicona milímetro a milímetro. ¡Llevó más de 3 años de trabajo!</li>
+                    <li><strong>Dirigida por Henry Selick:</strong> Aunque la idea y los personajes son de Tim Burton, la película fue dirigida magistralmente por el experto en animación Henry Selick.</li>
+                </ul>
+            </div>
+            
+            <button class="btn-accion" onclick="irANetiqueta()">SIGUIENTE: MUNDOS Y VALORES ➔</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA EXPLICATIVA 2: APRENDIZAJES Y VALORES -->
+    <div id="screen-netiqueta" class="screen">
+        <div class="ventana-ciber">
+            <h1 style="color: var(--verde-zombie);">DOS MUNDOS Y GRANDES VALORES ❄️🎃</h1>
+            <button class="btn-audio" onclick="leerNetiqueta()">🔊 Escuchar Explicación</button>
+
+            <div class="caja-explicativa">
+                <p style="margin-top:0;">La película nos enseña valiosas lecciones sobre la creatividad, la empatía y la propia identidad:</p>
+                <p>Grandes lecciones de Jack Skellington y Sally:</p>
+                <ul>
+                    <li><strong>Apreciar la propia identidad:</strong> Jack descubre que no necesita convertirse en Papá Noel para ser valioso; su verdadero talento está en ser el Rey de Halloween.</li>
+                    <li><strong>Escuchar a los verdaderos amigos:</strong> Sally intenta avisar a Jack con prudencia y cariño de que sus planes pueden salir mal, demostrando auténtica amistad.</li>
+                    <li><strong>Respeto entre tradiciones:</strong> La Ciudad de Halloween y la Ciudad de la Navidad son distintas y maravillosas, enseñándonos a valorar la diversidad.</li>
+                </ul>
+            </div>
+
+            <button class="btn-accion" onclick="irAHistoria()">¡IR A LA HISTORIA DE LA MISIÓN!</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA HISTORIA E INTRODUCCIÓN -->
+    <div id="screen-historia" class="screen">
+        <div class="ventana-ciber">
+            <h1 style="color: var(--amarillo-luna);">¡BIENVENIDOS A LA CIUDAD DE HALLOWEEN! 🌕</h1>
+            <div class="caja-explicativa">
+                <p>¡Atención, aventureros de Primaria! Jack Skellington ha abierto las puertas de los árboles mágicos para poner a prueba nuestro conocimiento sobre su increíble película.</p>
+                <p>A través de estos 40 retos divididos en 4 bloques exploraremos el <strong>origen de la película</strong>, los <strong>personajes inolvidables</strong>, sus <strong>canciones y mundos</strong> y las <strong>lecciones de convivencia</strong> que nos transmiten.</p>
+                <p>Recordad: ¡El mejor equipo no es solo el que acumula más puntos, sino el que colabora con respeto, deportividad y entusiasmo en el aula!</p>
+            </div>
+            <button class="btn-accion" onclick="empezarJuego()">¡ABRIR EL ÁRBOL DE LA CALABAZA!</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE JUEGO -->
+    <div id="screen-juego" class="screen">
+        <div id="contenedor-marcadores"></div>
+        <div class="panel-pregunta">
+            <button id="ciber-policia-container" class="btn-evento-flotante" onclick="abrirCiberPolicia()">💀</button>
+            <button id="btn-ruleta-container" class="btn-evento-flotante" onclick="abrirModalRuleta()">🎡</button>
+            
+            <div class="game-header">
+                <span id="ind-nivel" class="nivel-text">BLOQUE 1</span>
+                <span id="cont-pregunta" class="pregunta-text">RETO 1 de 10</span>
+            </div>
+            
+            <div class="progress-container"><div id="progress-bar" class="progress-bar"></div></div>
+            <div id="dots-container" class="dots-container">
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            </div>
+
+            <div class="timer-container" id="timer-container-box"><div id="timer-bar"></div></div>
+            <div id="icono-nivel-container"></div>
+            <div id="texto-pregunta" style="font-size: 1.4rem; font-weight: 800; margin: 10px 0;"></div>
+            <div id="contenedor-opciones"></div>
+        </div>
+    </div>
+
+    <!-- PANTALLA TRANSICIÓN ENTRE BLOQUES -->
+    <div id="screen-transicion" class="screen">
+        <div class="ventana-ciber">
+            <div style="font-size: 4rem;">⚡ 🎃 ⚡</div>
+            <h1 style="color: var(--verde-zombie);">¡BLOQUE DE LA ESPIRAL COMPLETADO!</h1>
+            <p style="font-size: 1.3rem;">Siguiente rincón del mundo mágico:</p>
+            <h2 id="nombre-siguiente-nivel" style="color: var(--amarillo-luna); font-family: 'Creepster'; font-size: 2rem;"></h2>
+            <div style="font-size: 2.5rem; margin: 15px;">🌕 💀 🎄</div>
+            <button class="btn-accion" onclick="continuarSiguienteNivel()">¡CRUZAR EL SIGUIENTE ÁRBOL!</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA FINAL - RANKING -->
+    <div id="screen-final" class="screen">
+        <div class="ventana-ciber">
+            <h1 class="titulo-juego">CLASIFICACIÓN DE LA CIUDAD DE HALLOWEEN</h1>
+            <div style="font-size: 3.5rem; margin-bottom: 15px;">🏆🎃</div>
+            <div id="contenedor-ranking" style="width: 100%; text-align: left;"></div>
+            <button class="btn-accion" style="margin-top:25px; background: var(--amarillo-luna); color: #000;" onclick="mostrarDiploma()">OBTENER CERTIFICADO DE REY DE HALLOWEEN 📜</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA DIPLOMA / CERTIFICADO -->
+    <div id="screen-diploma" class="screen">
+        <div class="diploma-container">
+            <div style="font-size: 5rem; margin-bottom: 10px;">🏅💀🎃</div>
+            <h1 style="color: var(--amarillo-luna); font-family: 'Creepster'; font-size: 2.8rem; margin: 10px 0;">DIPLOMA DE EXPERTO EN PESADILLA ANTES DE NAVIDAD</h1>
+            <h2 style="color: var(--rojo-navidad); font-size: 1.8rem; margin: 10px 0;">EDUCACIÓN PRIMARIA - MUNDOS MÁGICOS</h2>
+            <p style="font-size: 1.3rem; line-height: 1.6; padding: 15px; border-radius: 12px; background: rgba(255,255,255,0.05); margin: 20px; border: 1px solid var(--azul-pesadilla);">
+                Habéis demostrado conocer a la perfección la historia de <strong style="color: var(--amarillo-luna);">Pesadilla antes de Navidad</strong>, comprendiendo su arte en stop-motion, sus personajes y el valor de valorar nuestra propia identidad.<br><br>
+                ¡Enhorabuena, la Ciudad de Halloween y la Ciudad de la Navidad celebran vuestra sabiduría!
+            </p>
+            <button class="btn-accion" onclick="location.reload()">REINICIAR DESAFÍO</button>
+        </div>
+    </div>
+
+    <!-- MODAL JACK SKELLINGTON / TUTOR -->
+    <div id="modal-ciberpolicia" class="modal-overlay">
+        <div class="modal-content">
+            <h2 style="color: var(--amarillo-luna); font-family: 'Creepster'; font-size: 2rem;">💀 EL CONSEJO DE JACK SKELLINGTON 💀</h2>
+            <p id="ciberpolicia-texto" style="font-size:1.4rem; font-weight: 700;"></p>
+            
+            <div id="intercambio-equipos-policia" style="display:none; margin-bottom: 15px;">
+                <p style="font-weight:bold;">Elige el equipo para realizar el intercambio de pócimas o regalos:</p>
+                <div id="lista-intercambio-policia" style="display:flex; flex-direction:column; gap:5px;"></div>
+            </div>
+
+            <button id="btn-cerrar-policia" class="btn-accion" onclick="cerrarCiberPolicia()" style="margin: 0 auto; display: block;">¡ENTENDIDO!</button>
+        </div>
+    </div>
+    
+    <!-- MODAL RULETA MÁGICA -->
+    <div id="modal-ruleta" class="modal-overlay">
+        <div class="modal-content">
+            <h2 style="color: var(--rojo-navidad); font-family: 'Creepster'; font-size: 2rem;">🎡 RULETA DE LOS MUNDOS MÁGICOS 🎡</h2>
+            <div class="ruleta-wrapper"><div class="ruleta-pointer"></div><div id="ruleta-fisica" class="ruleta-bg"></div></div>
+            <p id="ruleta-texto" style="font-size:1.3rem; font-weight: 700; min-height: 50px;"></p>
+            
+            <div id="intercambio-equipos-ruleta" style="display:none; margin-bottom: 15px;">
+                <p style="font-weight:bold;">Elige el equipo para realizar el hechizo de intercambio:</p>
+                <div id="lista-intercambio-ruleta" style="display:flex; flex-direction:column; gap:5px;"></div>
+            </div>
+
+            <button id="btn-tirar-ruleta" class="btn-accion" onclick="girarRuleta()" style="margin: 0 auto; display: block;">¡GIRAR RULETA!</button>
+            <button id="btn-cerrar-ruleta" class="btn-accion" onclick="cerrarRuleta()" style="display:none; margin: 0 auto;">¡ACEPTAR!</button>
+        </div>
+    </div>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let numEquipos = 3, equipos = [], nivelActual = 0, preguntaActual = 0, turnoEquipo = 0;
+        let timerInterval, timeLeft;
+        let eventosDelNivel = [];
+
+        // EVENTOS DEL CONSEJO DE JACK
+        let premiosCiberPolicia = [
+            { p: 100, msg: "¡Ayudaste a Zero a encontrar su hueso volador! +100 pts" },
+            { p: 200, msg: "¡Cocinaste una sopa de la Sombra de las Brujas con Sally! +200 pts" },
+            { p: 300, msg: "¡Explicaste a tus amigos cómo se hace la animación Stop-Motion! +300 pts" },
+            { p: 400, msg: "¡Acompañaste al Alcalde a preparar el discurso del pueblo! +400 pts" },
+            { p: 500, msg: "¡Respetaste las ideas creativas de un compañero en clase! +500 pts" },
+            { p: 600, msg: "¡Limpiaste las telas de araña del laboratorio del Dr. Finkelstein! +600 pts" },
+            { p: 700, msg: "¡Escribiste una canción navideña y divertida en clase de Música! +700 pts" },
+            { p: 800, msg: "¡Incluiste a un amigo nuevo en tus juegos de recreo! +800 pts" },
+            { p: 900, msg: "¡Aprendiste el nombre de todos los personajes de la película! +900 pts" },
+            { p: 1000, msg: "¡Eres un auténtico Guardián del Arte y la Convivencia! +1000 pts" },
+            { p: "intercambio", msg: "¡Hechizo de la Espiral! Intercambia puntos con otro equipo." },
+            { p: "intercambio", msg: "¡Hechizo de la Espiral! Intercambia puntos con otro equipo." },
+            { p: "intercambio", msg: "¡Hechizo de la Espiral! Intercambia puntos con otro equipo." }
+        ];
+
+        // BANCO DE PREGUNTAS (4 BLOQUES TEMÁTICOS SOBRE PESADILLA ANTES DE NAVIDAD)
+        const niveles = [
+            { nombre: "BLOQUE 1: ORIGEN, CREACIÓN Y TÉCNICA", p: [
+                { q: "¿Quién escribió el poema original en el que se basa la película 'Pesadilla antes de Navidad'?", a: ["Tim Burton.", "Walt Disney.", "Steven Spielberg.", "George Lucas."], c: 0 },
+                { q: "¿Cómo se llama la técnica de animación artesanal usada para grabar la película moviendo muñecos fijos?", a: ["Stop-Motion (fotograma a fotograma).", "Dibujos animados tradicionales en 2D.", "Efectos especiales por ordenador pura.", "Grabación con actores reales disfrazados."], c: 0 },
+                { q: "¿Quién fue el director de cine encargado de dirigir la película 'Pesadilla antes de Navidad'?", a: ["Henry Selick.", "Tim Burton.", "Guillermo del Toro.", "John Lasseter."], c: 0 },
+                { q: "¿Quién compuso la famosa música y las canciones inolvidables de la película?", a: ["Danny Elfman.", "John Williams.", "Hans Zimmer.", "Ennio Morricone."], c: 0 },
+                { q: "¿Cuánto tiempo duró aproximadamente el proceso completo de rodaje en stop-motion de la película?", a: ["Más de 3 años de intenso trabajo.", "Dos semanas de verano.", "Seis meses exactos.", "Un fin de semana largo."], c: 0 },
+                { q: "¿Qué ocurría en las tiendas cuando Tim Burton era joven que le inspiró a juntar Halloween y Navidad?", a: ["Cambiaban la decoración de Halloween por la de Navidad de un día para otro.", "Las tiendas cerraban durante todo el otoño.", "Regalaban árboles de Navidad con formas de calabaza.", "Llovía nieve verde en la calle."], c: 0 },
+                { q: "Para cambiar la expresión facial del personaje de Jack en cada fotograma, los animadores...", a: ["Cambiaban su cabeza completa por otra escultura con distinta boca.", "Le pintaban la cara con un rotulador mágico.", "Usaban máscaras de papel pegadas con cola.", "Le estiraban la piel de plástico con los dedos."], c: 0 },
+                { q: "¿Qué importante compañía cinematográfica produjo y distribuyó la película?", a: ["Touchstone Pictures / Walt Disney Pictures.", "Warner Bros.", "Universal Studios.", "Paramount Pictures."], c: 0 },
+                { q: "El gran valor del trabajo en animación stop-motion como el de esta película reside en...", a: ["La paciencia, la precisión artesanal y la dedicación en equipo.", "Hacer las cosas lo más rápido posible sin revisar.", "Copiar dibujos de otros creadores.", "Usar siempre botones automáticos."], c: 0 },
+                { q: "A pesar de sus aspectos tétricos, la película destaca internacionalmente por...", a: ["Su enorme belleza artística, creatividad, música y mensaje de amistad.", "Asustar a la gente sin enseñar nada útil.", "Ser una película de terror sangriento.", "Enseñar a no celebrar las fiestas."], c: 0 }
+            ]},
+            { nombre: "BLOQUE 2: PERSONAJES INOLVIDABLES", p: [
+                { q: "¿Quién es el protagonista principal de la película conocido como el 'Rey Calabaza'?", a: ["Jack Skellington.", "Oogie Boogie.", "Dr. Finkelstein.", "El Alcalde."], c: 0 },
+                { q: "¿Cómo se llama la fiel muñeca de trapo rellena de hojas secas que quiere a Jack?", a: ["Sally.", "Emily.", "Coraline.", "Victoria."], c: 0 },
+                { q: "¿Qué tipo de animal es Zero, el leal compañero de Jack que tiene una nariz brillante?", a: ["Un perro fantasma.", "Un gato negro volador.", "Un murciélago con sombrero.", "Un búho Sabio."], c: 0 },
+                { q: "¿Cómo se llama el villano de la historia que es un saco lleno de bichos y le encantan los juegos de azar?", a: ["Oogie Boogie.", "Jack Skellington.", "Lock.", "Barrel."], c: 0 },
+                { q: "¿Cómo se llama el científico en silla de ruedas que creó a Sally en su laboratorio?", a: ["Dr. Finkelstein.", "Dr. Frankenstein.", "Dr. Jekyll.", "Profesor Bacterio."], c: 0 },
+                { q: "¿Qué peculiaridad tiene la cara del Alcalde de la Ciudad de Halloween?", a: ["Tiene dos caras en la cabeza que giran según esté feliz o preocupado.", "Es de color verde brillante todo el tiempo.", "No tiene ojos ni boca.", "Lleva una máscara de hierro fija."], c: 0 },
+                { q: "¿Cómo se llaman los tres niños traviesos que ayudan a Oogie Boogie y secuestran a 'Santa Clavos'?", a: ["Lock, Shock y Barrel.", "Huey, Dewey y Louie.", "Alvin, Simon y Theodore.", "Tom, Dick y Harry."], c: 0 },
+                { q: "Cuando Jack descubre la Ciudad de la Navidad, llama cariñosamente a Papá Noel...", a: ["Santa Clavos (Sandy Claws).", "Gran Tío Rojo.", "Rey del Frío.", "Señor de la Nieve."], c: 0 },
+                { q: "¿Qué habilidad especial tiene Sally gracias a estar hecha de tela y costuras?", a: ["Puede descoserse y volverse a coser sus extremidades fácilmente.", "Puede volverse invisible cuando quiere.", "Puede volar por encima de las nubes.", "Puede transformarse en agua."], c: 0 },
+                { q: "La relación entre Jack y Sally nos enseña que los verdaderos amigos...", a: ["Nos aconsejan con prudencia y están a nuestro lado en los momentos difíciles.", "Nos dicen que sí a todo aunque sea peligroso.", "Se enfadan si pensamos distinto.", "Solo juegan cuando ganan."], c: 0 }
+            ]},
+            { nombre: "BLOQUE 3: CANCIONES, MUNDOS Y AVENTURA", p: [
+                { q: "¿Cuál es la famosa canción que cantan los habitantes de la ciudad al comienzo de la película?", a: ["'Esto es Halloween' (This Is Halloween).", " 'Dulce Navidad'.", "'La Canción del Verano'.", "'Bailando con Monstruos'."], c: 0 },
+                { q: "¿Qué siente Jack cuando canta su triste lamentación en la colina de la espiral?", a: ["Se siente cansado de hacer siempre lo mismo y busca algo nuevo que le ilumine.", "Está enfadado con todos sus amigos del pueblo.", "Quiere mudarse al fondo del mar.", "Tiene hambre y no encuentra comida."], c: 0 },
+                { q: "¿Cómo viaja Jack desde su mundo hasta la Ciudad de la Navidad?", a: ["A través de un árbol mágico con la forma de un Árbol de Navidad en el bosque.", "Volando en un cohete espacial.", "Navegando en un submarino amarillo.", "Subiendo por una escalera gigante."], c: 0 },
+                { q: "¿Qué canción canta Jack cuando ve por primera vez la nieve, los luces y la alegría navideña?", a: ["'¿Qué es?' (What's This?).", " 'Tengo Miedo'.", "'Noche de Paz'.", "'Volver a Casa'."], c: 0 },
+                { q: "¿Qué regalaron los habitantes de Halloween a los niños humanos que asustó a todo el mundo?", a: ["Juguetes siniestros como serpientes de tela, murciélagos y cabezas reducidas.", "Turrón de almendras y caramelos dulces.", "Libros de matemáticas y cuadernos.", "Bicicletas brillantes de colores."], c: 0 },
+                { q: "¿Dónde vive Oogie Boogie en la Ciudad de Halloween?", a: ["En una guarida subterránea llena de luces de casino y trampas.", "En la cima de la colina de la luna.", "En una casita de madera en el bosque.", "En el palacio de cristal."], c: 0 },
+                { q: "¿Qué usa Sally para adormecer al Dr. Finkelstein y poder salir de la torre a explorar?", a: ["Hierba de la Sombra / Belladona en su sopa.", "Un hechizo de congelación.", "Música de piano relajante.", "Un antifaz para dormir."], c: 0 },
+                { q: "¿Qué elemento brillante de Zero ayuda a Jack a guiar su trineo entre la niebla espesa?", a: ["Su nariz roja de calabaza luminosa.", "Su capa blanca que brilla en la oscuridad.", "Su collar de oro puro.", "Sus orejas grandes."], c: 0 },
+                { q: "Al final de la película, ¿qué regalo maravilloso trae Santa Clavos a la Ciudad de Halloween?", a: ["Nieve auténtica para que conozcan la magia de la Navidad.", "Un camión lleno de caramelos de fresa.", "Una televisión para cada casa.", "Trajes de baño para el verano."], c: 0 },
+                { q: "El momento en que Jack y Sally se juntan en la colina bajo la luna llena simboliza...", a: ["La unión sincera, la paz entre los mundos y el amor verdadero.", "El comienzo de una nueva batalla.", "La llegada del verano caluroso.", "Un truco de magia divertido."], c: 0 }
+            ]},
+            { nombre: "BLOQUE 4: LECCIONES DE VIDA Y CONVIVENCIA", p: [
+                { q: "¿Cuál es el principal aprendizaje que obtiene Jack tras intentar sustituir a Papá Noel?", a: ["Comprender y valorar su propia identidad como Rey de Halloween sin querer ser otro.", "Aprender que la Navidad es aburrida.", "Decidir no volver a trabajar nunca más.", "Pensar que no sirve para nada."], c: 0 },
+                { q: "Cuando cometemos un error por entusiasmo como le ocurrió a Jack, lo responsable es...", a: ["Reconocerlo con humildad, pedir perdón y esforzarnos por solucionarlo.", "Echarle la culpa a nuestros compañeros.", "Escondernos para que nadie lo sepa.", "Enfadarnos con los demás."], c: 0 },
+                { q: "La actitud de Sally intentando advertir a Jack sobre sus riesgos nos enseña a...", a: ["Ser sinceros, prudentes y cuidar la seguridad de las personas que queremos.", "Ignorar a los amigos cuando tienen problemas.", "Decir siempre que todo saldrá mal para asustar.", "No intervenir nunca en nada."], c: 0 },
+                { q: "¿Por qué la Ciudad de Halloween y la Ciudad de la Navidad deben respetarse mutuamente?", a: ["Porque cada cultura y festividad tiene su propia belleza e importancia única.", "Porque está prohibido por la ley viajar entre árboles.", "Porque las dos ciudades son exactamente iguales.", "Porque no se conocen entre sí."], c: 0 },
+                { q: "Al trabajar en proyectos creativos en el colegio, la lección de la película es...", a: ["Aportar nuestras ideas únicas respetando y escuchando las de los demás.", "Exigir que todos hagan sólo lo que a mí me gusta.", "Copiar la idea del compañero sin pedir permiso.", "No participar para no equivocarnos."], c: 0 },
+                { q: "El personaje del Alcalde con sus dos caras satiriza divertido a las personas que...", a: ["Cambian de opinión o se alteran con facilidad cuando no tienen el control.", "Saben solucionar todos los problemas con calma.", "Son muy deportistas y activas.", "Hablan muchos idiomas diferentes."], c: 0 },
+                { q: "Si en el recreo vemos a un compañero triste o aislado como se sentía Jack al principio...", a: ["Acercarnos a hablar con él, escucharle e invitarle a jugar con nosotros.", "Dejarlo solo para que no nos moleste.", "Reírnos de su tristeza.", "Decirle al maestro que se lo lleve."], c: 0 },
+                { q: "La diversidad de monstruos y criaturas de la Ciudad de Halloween nos demuestra que...", a: ["Cada ser es diferente, especial y aporta riqueza a la comunidad.", "Todos los habitantes deberían ser idénticos.", "Solo los personajes guapos pueden ser protagonistas.", "Las criaturas raras no deben hablar."], c: 0 },
+                { q: "¿Qué valor ético ejercitamos al disfrutar de películas de animación de distintas épocas y artes?", a: ["Aprecio por el arte, sensibilidad cultural y espíritu crítico.", "Comprar juguetes de plástico sin parar.", "Pasar horas frente a la pantalla sin pensar.", "Olvidar los libros de lectura."], c: 0 },
+                { q: "En definitiva, celebrar y estudiar 'Pesadilla antes de Navidad' en el colegio nos ayuda a...", a: ["Desarrollar la creatividad, aprender a valorarnos a nosotros mismos y convivir en armonía.", "Tener pesadillas por las noches.", "Preferir la Navidad antes que la escuela.", "No querer hacer trabajos en equipo."], c: 0 }
+            ]}
+        ];
+
+        // PREMIOS DE LA RULETA DE MUNDOS MÁGICOS
+        const premiosRuleta = [
+            { p: 50, msg: "¡Zero voló a traerte un caramelo luminoso! +50 pts." },
+            { p: 100, msg: "¡Cocinaste una sopa de hojas secas con Sally! +100 pts." },
+            { p: 150, msg: "¡Acompañaste a Jack a leer libros de Navidad! +150 pts." },
+            { p: 200, msg: "¡Escribiste un verso para el poema de Tim Burton! +200 pts." },
+            { p: 250, msg: "¡Encontraste la puerta del Árbol de la Navidad! +250 pts." },
+            { p: 300, msg: "¡Ayudaste al Alcalde a preparar las fiestas del pueblo! +300 pts." },
+            { p: 350, msg: "¡El Dr. Finkelstein te enseñó un invento brillante! +350 pts." },
+            { p: 400, msg: "¡Cantaste el coro de 'Esto es Halloween' con clase! +400 pts." },
+            { p: 450, msg: "¡Descifraste el mapa de las puertas mágicas! +450 pts." },
+            { p: 500, msg: "¡Santa Clavos te regaló copos de nieve verdadera! +500 pts." },
+            { p: 600, msg: "¡Gran banquete de turrón en la Ciudad de la Navidad! +600 pts." },
+            { p: 700, msg: "¡Pócima de la Creatividad Mágica concedida! +700 pts." },
+            { p: 800, msg: "¡Demostración de compañerismo en la Colina de la Espiral! +800 pts." },
+            { p: 1000, msg: "¡SUPER HECHIZO DEL REY DE HALLOWEEN! +1000 pts." },
+            { p: -50, msg: "Un murciélago travieso te despistó un segundo: -50 pts." },
+            { p: -100, msg: "Olvidaste echar la pimienta a la sopa de Sally: -100 pts." },
+            { p: -150, msg: "Lock, Shock y Barrel te gastaron una broma ligera: -150 pts." },
+            { p: -200, msg: "Te tropezaste con una raíz en el bosque de los árboles: -200 pts." },
+            { p: "intercambio", msg: "¡Estrategia Mágica! Intercambio de puntos. Elige con quién." },
+            { p: "intercambio", msg: "¡Estrategia Mágica! Intercambio de puntos. Elige con quién." }
+        ];
+
+        function seleccionarJugadores(n) { 
+            numEquipos = n; 
+            document.querySelectorAll('.btn-jug').forEach((b, i) => b.classList.toggle('seleccionado', (i+1)===n)); 
+        }
+
+        // NAVEGACIÓN INICIAL DE PANTALLAS
+        function irACiberconvivencia() {
+            document.getElementById('screen-inicio').classList.remove('active');
+            document.getElementById('screen-ciberconvivencia').classList.add('active');
+            leerCiberconvivencia();
+        }
+
+        function leerCiberconvivencia() {
+            hablar("Pesadilla antes de Navidad nació de un poema de Tim Burton. Se rodó fotograma a fotograma con la artesanal técnica de animación stop motion durante más de tres años de trabajo y fue dirigida por Henry Selick.");
+        }
+
+        function irANetiqueta() {
+            window.speechSynthesis.cancel();
+            document.getElementById('screen-ciberconvivencia').classList.remove('active');
+            document.getElementById('screen-netiqueta').classList.add('active');
+            leerNetiqueta();
+        }
+
+        function leerNetiqueta() {
+            hablar("La película nos enseña a apreciar nuestra propia identidad, a escuchar a nuestros verdaderos amigos como Sally y a respetar la diversidad de tradiciones y culturas.");
+        }
+
+        function irAHistoria() {
+            window.speechSynthesis.cancel();
+            document.getElementById('screen-netiqueta').classList.remove('active');
+            document.getElementById('screen-historia').classList.add('active');
+            hablar("Bienvenidos a la aventura de Pesadilla antes de Navidad. Descubrid el arte, la música y las valiosas lecciones de esta inolvidable historia.");
+        }
+
+        function empezarJuego() {
+            window.speechSynthesis.cancel();
+            equipos = []; const colores = ['var(--eq1)', 'var(--eq2)', 'var(--eq3)', 'var(--eq4)', 'var(--eq5)', 'var(--eq6)'];
+            for(let i=0; i<numEquipos; i++) equipos.push({ nombre: `Equipo ${i+1}`, pts: 0, color: colores[i] });
+            
+            premiosCiberPolicia.sort(() => Math.random() - 0.5);
+
+            document.getElementById('screen-historia').classList.remove('active');
+            document.getElementById('screen-juego').classList.add('active');
+            actualizarMarcadores(); mostrarPregunta();
+        }
+
+        function generarEventosDelNivel(nivelIdx) {
+            eventosDelNivel = Array(10).fill('none');
+            let numPolicias = 2; let numRuletas = 2; 
+            let disponibles = [0,1,2,3,4,5,6,7,8,9];
+            disponibles.sort(() => Math.random() - 0.5);
+            for(let i=0; i<numPolicias; i++) eventosDelNivel[disponibles.pop()] = 'policia';
+            for(let i=0; i<numRuletas; i++) eventosDelNivel[disponibles.pop()] = 'ruleta';
+        }
+
+        function actualizarIconoNivel(nivelIdx) {
+            const container = document.getElementById('icono-nivel-container');
+            let htmlIcono = '';
+            switch(nivelIdx) {
+                case 0: htmlIcono = '<span class="emoji-grande">✍️</span><span class="emoji-grande">🎥</span>'; break;
+                case 1: htmlIcono = '<span class="emoji-grande">💀</span><span class="emoji-grande">🧵</span>'; break;
+                case 2: htmlIcono = '<span class="emoji-grande">❄️</span><span class="emoji-grande">🎶</span>'; break;
+                case 3: htmlIcono = '<span class="emoji-grande">🤝</span><span class="emoji-grande">⭐</span>'; break;
+                default: htmlIcono = '<span class="emoji-grande">💀</span>';
+            }
+            container.innerHTML = htmlIcono;
+        }
+
+        function actualizarProgreso() {
+            const progreso = (preguntaActual / 9) * 100;
+            document.getElementById('progress-bar').style.width = `${progreso}%`;
+            const dots = document.getElementById('dots-container').children;
+            for(let i = 0; i < 10; i++) {
+                dots[i].className = 'dot';
+                if (i < preguntaActual) dots[i].classList.add('passed');
+                if (i === preguntaActual) dots[i].classList.add('active');
+            }
+        }
+
+        function mostrarPregunta() {
+            clearInterval(timerInterval);
+            if (preguntaActual === 0) generarEventosDelNivel(nivelActual);
+
+            const niv = niveles[nivelActual]; const p = niv.p[preguntaActual];
+            document.getElementById('ind-nivel').innerText = niv.nombre;
+            document.getElementById('cont-pregunta').innerText = `RETO ${preguntaActual + 1} de 10`;
+            actualizarIconoNivel(nivelActual);
+            document.getElementById('texto-pregunta').innerText = p.q;
+            
+            actualizarProgreso();
+
+            let indices = [0, 1, 2, 3]; indices.sort(() => Math.random() - 0.5);
+            const cont = document.getElementById('contenedor-opciones'); cont.innerHTML = '';
+            let tOpc = ""; const letras = ["A", "B", "C", "D"];
+
+            indices.forEach((idx, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-opcion'; btn.innerText = p.a[idx];
+                btn.onclick = () => verificarRespuesta(idx);
+                cont.appendChild(btn);
+                tOpc += ` Opción ${letras[i]}: ${p.a[idx]}.`;
+            });
+
+            const eventoActivo = eventosDelNivel[preguntaActual];
+            const hasH = (eventoActivo === 'policia');
+            const hasW = (eventoActivo === 'ruleta');
+
+            document.getElementById('ciber-policia-container').style.display = hasH ? 'block' : 'none';
+            document.getElementById('btn-ruleta-container').style.display = hasW ? 'block' : 'none';
+
+            let msg = `${equipos[turnoEquipo].nombre}: ${p.q}`;
+            hablar(msg);
+
+            iniciarTimer();
+        }
+
+        function iniciarTimer() {
+            const checkTime = document.getElementById('check-tiempo').checked;
+            const containerBox = document.getElementById('timer-container-box');
+            if(!checkTime) { containerBox.style.display = 'none'; return; }
+            containerBox.style.display = 'block';
+            timeLeft = 30; 
+            const bar = document.getElementById('timer-bar'); bar.style.width = "100%";
+            timerInterval = setInterval(() => {
+                timeLeft--; bar.style.width = (timeLeft / 30 * 100) + "%";
+                if(timeLeft <= 0) { clearInterval(timerInterval); verificarRespuesta(-1); }
+            }, 1000);
+        }
+
+        function verificarRespuesta(idx) {
+            clearInterval(timerInterval); window.speechSynthesis.cancel();
+            const p = niveles[nivelActual].p[preguntaActual];
+            if(idx === p.c) {
+                playSfx('acierto'); equipos[turnoEquipo].pts += 100;
+                document.getElementById('puntos-flow-gold').style.display = 'block'; setTimeout(()=>document.getElementById('puntos-flow-gold').style.display='none',2000);
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.7 } });
+            } else {
+                playSfx('error'); equipos[turnoEquipo].pts = Math.max(0, equipos[turnoEquipo].pts - 50);
+                document.getElementById('puntos-flow-error').style.display = 'block'; setTimeout(()=>document.getElementById('puntos-flow-error').style.display='none',2000);
+            }
+            setTimeout(() => {
+                preguntaActual++;
+                if(preguntaActual >= 10) {
+                    preguntaActual = 0; nivelActual++;
+                    if(nivelActual < niveles.length) { 
+                        document.getElementById('screen-juego').classList.remove('active'); 
+                        document.getElementById('screen-transicion').classList.add('active'); 
+                        document.getElementById('nombre-siguiente-nivel').innerText = niveles[nivelActual].nombre; 
+                        hablar("¡Mundo completado! Siguiente bloque: " + niveles[nivelActual].nombre);
+                    }
+                    else { mostrarRankingFinal(); }
+                } else { turnoEquipo = (turnoEquipo + 1) % numEquipos; actualizarMarcadores(); mostrarPregunta(); }
+            }, 2000);
+        }
+
+        function continuarSiguienteNivel() { 
+            document.getElementById('screen-transicion').classList.remove('active'); 
+            document.getElementById('screen-juego').classList.add('active'); 
+            turnoEquipo = (turnoEquipo + 1) % numEquipos; 
+            actualizarMarcadores(); 
+            mostrarPregunta(); 
+        }
+
+        function actualizarMarcadores() {
+            const cont = document.getElementById('contenedor-marcadores'); cont.innerHTML = '';
+            equipos.forEach((eq, i) => {
+                const div = document.createElement('div');
+                div.className = `marcador-eq ${i === turnoEquipo ? 'marcador-activo' : ''}`;
+                div.style.backgroundColor = eq.color;
+                div.innerHTML = `<div style="font-family:'Creepster'; font-size:1rem; letter-spacing:1px;">${eq.nombre}</div><div style="font-size:1.2rem; font-weight:900;">⭐ ${eq.pts}</div>`;
+                cont.appendChild(div);
+            });
+        }
+
+        function hablar(t) { 
+            window.speechSynthesis.cancel(); 
+            const u = new SpeechSynthesisUtterance(t); 
+            u.lang='es-ES'; u.rate = 0.95; 
+            window.speechSynthesis.speak(u); 
+        }
+        
+        function playSfx(type) {
+            const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
+            osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+            if (type === 'acierto') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, now); osc.frequency.setValueAtTime(659.25, now + 0.1); osc.frequency.setValueAtTime(783.99, now + 0.2);
+                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05); gainNode.gain.linearRampToValueAtTime(0, now + 0.4);
+                osc.start(now); osc.stop(now + 0.4);
+            } else if (type === 'error') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(250, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
+                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05); gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'magic') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(300, now); osc.frequency.linearRampToValueAtTime(900, now + 0.5);
+                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.2, now + 0.2); gainNode.gain.linearRampToValueAtTime(0, now + 0.5);
+                osc.start(now); osc.stop(now + 0.5);
+            }
+        }
+
+        function abrirCiberPolicia() { 
+            clearInterval(timerInterval); window.speechSynthesis.cancel(); 
+            document.getElementById('ciber-policia-container').style.display = 'none';
+            document.getElementById('modal-ciberpolicia').style.display = 'flex';
+            playSfx('magic');
+            
+            let premioObj = premiosCiberPolicia.pop();
+            if (premioObj.p === "intercambio") {
+                document.getElementById('ciberpolicia-texto').innerText = premioObj.msg;
+                document.getElementById('btn-cerrar-policia').style.display = 'none';
+                hablar(premioObj.msg); prepararIntercambioPolicia();
+            } else {
+                equipos[turnoEquipo].pts += premioObj.p;
+                document.getElementById('ciberpolicia-texto').innerText = premioObj.msg;
+                document.getElementById('btn-cerrar-policia').style.display = 'block';
+                document.getElementById('intercambio-equipos-policia').style.display = 'none';
+                actualizarMarcadores(); hablar(premioObj.msg);
+            }
+        }
+
+        function prepararIntercambioPolicia() {
+            const area = document.getElementById('intercambio-equipos-policia'); const lista = document.getElementById('lista-intercambio-policia');
+            area.style.display = 'block'; lista.innerHTML = '';
+            equipos.forEach((eq, i) => {
+                if(i !== turnoEquipo) {
+                    const btn = document.createElement('button'); btn.className = 'btn-accion'; btn.style.fontSize = '1rem'; btn.style.padding = '8px 15px';
+                    btn.innerText = `Con ${eq.nombre} (${eq.pts} pts)`; btn.onclick = () => ejecutarIntercambioPolicia(i, eq.nombre);
+                    lista.appendChild(btn);
+                }
+            });
+            if(numEquipos < 2) { 
+                document.getElementById('ciberpolicia-texto').innerText = "Modo individual activo. Sin intercambio."; 
+                area.style.display = 'none'; document.getElementById('btn-cerrar-policia').style.display = 'block';
+            }
+        }
+
+        function ejecutarIntercambioPolicia(idxTarget, nombreTarget) {
+            playSfx('magic'); let temp = equipos[turnoEquipo].pts; equipos[turnoEquipo].pts = equipos[idxTarget].pts; equipos[idxTarget].pts = temp;
+            document.getElementById('intercambio-equipos-policia').style.display = 'none';
+            let finalMsg = `Hechizo completado con ${nombreTarget}. ¡Seguimos explorando la Ciudad de Halloween!`;
+            document.getElementById('ciberpolicia-texto').innerText = finalMsg; hablar(finalMsg);
+            actualizarMarcadores(); document.getElementById('btn-cerrar-policia').style.display = 'block';
+        }
+
+        function cerrarCiberPolicia() { document.getElementById('modal-ciberpolicia').style.display = 'none'; iniciarTimer(); }
+
+        function abrirModalRuleta() { 
+            clearInterval(timerInterval); window.speechSynthesis.cancel(); 
+            document.getElementById('btn-ruleta-container').style.display = 'none'; 
+            document.getElementById('modal-ruleta').style.display = 'flex'; 
+            document.getElementById('btn-tirar-ruleta').style.display = 'block'; 
+            document.getElementById('btn-cerrar-ruleta').style.display = 'none';
+            document.getElementById('intercambio-equipos-ruleta').style.display = 'none';
+            document.getElementById('ruleta-texto').innerText = "¡Gira la ruleta para conseguir regalos o pócimas mágicas!";
+            hablar("¡Gira la ruleta para conseguir regalos o pócimas mágicas!");
+        }
+
+        function girarRuleta() {
+            const giro = 3600 + Math.floor(Math.random()*360); 
+            document.getElementById('ruleta-fisica').style.transform = `rotate(${giro}deg)`;
+            document.getElementById('btn-tirar-ruleta').style.display = 'none';
+            document.getElementById('ruleta-texto').innerText = "¡Lanzando el hechizo...";
+            setTimeout(() => {
+                const premioObj = premiosRuleta[Math.floor(Math.random() * premiosRuleta.length)];
+                if (premioObj.p === "intercambio") {
+                    playSfx('magic'); document.getElementById('ruleta-texto').innerText = premioObj.msg;
+                    hablar(premioObj.msg); prepararIntercambioRuleta();
+                } else {
+                    if(premioObj.p > 0) playSfx('acierto'); else playSfx('error');
+                    equipos[turnoEquipo].pts += premioObj.p; if(equipos[turnoEquipo].pts < 0) equipos[turnoEquipo].pts = 0; 
+                    document.getElementById('ruleta-texto').innerText = premioObj.msg;
+                    actualizarMarcadores(); hablar(premioObj.msg);
+                    document.getElementById('btn-cerrar-ruleta').style.display = 'block';
+                }
+            }, 3000);
+        }
+
+        function prepararIntercambioRuleta() {
+            const area = document.getElementById('intercambio-equipos-ruleta'); const lista = document.getElementById('lista-intercambio-ruleta');
+            area.style.display = 'block'; lista.innerHTML = '';
+            equipos.forEach((eq, i) => {
+                if(i !== turnoEquipo) {
+                    const btn = document.createElement('button'); btn.className = 'btn-accion'; btn.style.fontSize = '1rem'; btn.style.padding = '8px 15px';
+                    btn.innerText = `Con ${eq.nombre} (${eq.pts} pts)`; btn.onclick = () => ejecutarIntercambioRuleta(i, eq.nombre);
+                    lista.appendChild(btn);
+                }
+            });
+            if(numEquipos < 2) { 
+                document.getElementById('ruleta-texto').innerText = "Modo individual activo. Sin intercambio."; 
+                area.style.display = 'none'; document.getElementById('btn-cerrar-ruleta').style.display = 'block';
+            }
+        }
+
+        function ejecutarIntercambioRuleta(idxTarget, nombreTarget) {
+            playSfx('magic'); let temp = equipos[turnoEquipo].pts; equipos[turnoEquipo].pts = equipos[idxTarget].pts; equipos[idxTarget].pts = temp;
+            document.getElementById('intercambio-equipos-ruleta').style.display = 'none';
+            let finalMsg = `Puntos intercambiados con ${nombreTarget}. ¡Trabajando juntos en la Ciudad de Halloween!`;
+            document.getElementById('ruleta-texto').innerText = finalMsg; hablar(finalMsg);
+            actualizarMarcadores(); document.getElementById('btn-cerrar-ruleta').style.display = 'block';
+        }
+
+        function cerrarRuleta() { document.getElementById('modal-ruleta').style.display = 'none'; iniciarTimer(); }
+
+        function mostrarRankingFinal() {
+            document.getElementById('screen-juego').classList.remove('active'); 
+            document.getElementById('screen-final').classList.add('active');
+            const cont = document.getElementById('contenedor-ranking'); cont.innerHTML = '';
+            const orden = [...equipos].sort((a,b) => b.pts - a.pts);
+            const medallas = ["🥇", "🥈", "🥉", "4º", "5º", "6º"];
+            orden.forEach((eq, i) => {
+                const fila = document.createElement('div');
+                fila.className = `rank-fila ${i===0?'rank-1':''}`; fila.style.borderLeftColor = eq.color;
+                fila.innerHTML = `<div>${medallas[i]} ${eq.nombre}</div><div>⭐ ${eq.pts} pts</div>`;
+                cont.appendChild(fila);
+            });
+            confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+            hablar("¡Misión cumplida! Felicidades por completar el gran cuestionario interactivo de Pesadilla antes de Navidad.");
+        }
+
+        function mostrarDiploma() {
+            window.speechSynthesis.cancel();
+            document.getElementById('screen-final').classList.remove('active');
+            document.getElementById('screen-diploma').classList.add('active');
+            confetti({ particleCount: 300, spread: 120, origin: { y: 0.5 } });
+            hablar("¡Enhorabuena! Habéis demostrado conocer a la perfección la historia de Pesadilla antes de Navidad, comprendiendo su arte y el valor de valorar nuestra propia identidad.");
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HALLOWEEN EDUCATIVO - ATENCIÓN EDUCATIVA / PRIMARIA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-principal: #0d021a;
+            --bg-panel: #1a0933;
+            --naranja-halloween: #ff6600;
+            --morado-neon: #9d00ff;
+            --amarillo-fantasma: #ffcc00;
+            --verde-zombie: #00ff66;
+            --rojo-vampiro: #ff0033;
+            --texto-claro: #ffffff;
+            --eq1: #ff6600; --eq2: #9d00ff; --eq3: #00ff66; --eq4: #ffcc00; --eq5: #ff0033; --eq6: #00e5ff;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: radial-gradient(circle at center, #2a0845 0%, #120124 60%, #05000a 100%);
+            background-attachment: fixed;
+            color: var(--texto-claro);
+            margin: 0; padding: 0; overflow-x: hidden;
+            display: flex; flex-direction: column; min-height: 100vh; user-select: none;
+        }
+
+        .ventana-ciber {
+            border: 3px solid var(--naranja-halloween);
+            background: rgba(26, 9, 51, 0.95);
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 0 25px rgba(255, 102, 0, 0.4), inset 0 0 15px rgba(157, 0, 255, 0.2);
+            max-width: 850px;
+            width: 90%;
+            margin: 20px auto;
+            position: relative;
+        }
+
+        .badge-lateral {
+            position: absolute;
+            padding: 8px 15px;
+            font-family: 'Creepster', cursive;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.7);
+            z-index: 10;
+            letter-spacing: 1px;
+        }
+        .badge-tutoria { background: var(--morado-neon); color: white; top: -15px; left: 15px; border: 1px solid var(--naranja-halloween); }
+        .badge-primaria { background: var(--naranja-halloween); color: #000; top: -15px; right: 15px; font-weight: 900; }
+
+        .screen { display: none; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; padding: 20px; text-align: center; animation: fadeIn 0.5s ease-out; }
+        .screen.active { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+
+        h1.titulo-juego {
+            font-family: 'Creepster', cursive; font-size: clamp(2rem, 5.5vw, 3.5rem);
+            color: var(--naranja-halloween); letter-spacing: 2px; line-height: 1.1;
+            text-shadow: 0 0 15px rgba(255, 102, 0, 0.8), 3px 3px 0 #000;
+            margin: 15px 0;
+        }
+
+        .selector-equipos { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 15px 0; }
+        .btn-jug {
+            width: 55px; height: 55px; border-radius: 12px; border: 2px solid var(--naranja-halloween);
+            font-size: 1.5rem; font-family: 'Creepster', cursive; cursor: pointer; background: var(--bg-panel); color: white;
+            transition: 0.2s;
+        }
+        .btn-jug.seleccionado { background: var(--naranja-halloween); color: #000; font-weight: 900; transform: scale(1.1); box-shadow: 0 0 15px var(--naranja-halloween); }
+
+        .game-header {
+            display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 5px;
+            font-family: 'Creepster', cursive; font-size: 1.2rem; letter-spacing: 1px;
+        }
+        .nivel-text { color: var(--naranja-halloween); }
+        .pregunta-text { color: #aaa; font-family: 'Nunito', sans-serif; font-size: 0.9rem; }
+
+        .progress-container { width: 100%; height: 8px; background: #0d021a; border-radius: 4px; margin-top: 5px; overflow: hidden; border: 1px solid #3d1b5a; }
+        .progress-bar { height: 100%; background: var(--naranja-halloween); width: 0%; transition: width 0.3s; box-shadow: 0 0 8px var(--naranja-halloween); }
+        .dots-container { display: flex; justify-content: space-between; margin: 12px 0; padding: 0 5px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: #3d1b5a; transition: 0.3s; }
+        .dot.active { background: var(--amarillo-fantasma); box-shadow: 0 0 10px var(--amarillo-fantasma); transform: scale(1.3); }
+        .dot.passed { background: var(--verde-zombie); }
+
+        .timer-container {
+            width: 100%; background: #000; height: 20px; border-radius: 10px; margin-bottom: 10px; overflow: hidden; border: 2px solid var(--naranja-halloween); position: relative;
+        }
+        #timer-bar { height: 100%; background: linear-gradient(90deg, var(--verde-zombie), var(--amarillo-fantasma), var(--rojo-vampiro)); transition: width 1s linear; }
+
+        #icono-nivel-container { font-size: 3.5rem; margin: 10px 0; min-height: 70px; display: flex; align-items: center; justify-content: center; gap: 15px; }
+        .emoji-grande { animation: pulse 2s infinite; display: inline-block; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+        .btn-accion {
+            padding: 12px 35px; font-size: 1.4rem; font-family: 'Creepster', cursive; letter-spacing: 1px; border-radius: 30px;
+            border: 2px solid var(--naranja-halloween); background: var(--morado-neon); color: white; cursor: pointer;
+            box-shadow: 0 0 15px rgba(157, 0, 255, 0.5); transition: all 0.2s; margin-top: 15px; text-transform: uppercase;
+        }
+        .btn-accion:hover { background: var(--naranja-halloween); color: #000; box-shadow: 0 0 20px var(--naranja-halloween); }
+
+        .btn-audio {
+            background: rgba(255, 102, 0, 0.15); border: 2px solid var(--naranja-halloween); color: white;
+            padding: 8px 18px; border-radius: 20px; cursor: pointer; font-family: 'Creepster', cursive;
+            font-size: 1.1rem; margin-bottom: 15px; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; letter-spacing: 1px;
+        }
+        .btn-audio:hover { background: var(--naranja-halloween); color: #000; }
+
+        .caja-explicativa {
+            font-size: 1.25rem; line-height: 1.6; text-align: left; padding: 22px;
+            background: rgba(0,0,0,0.55); border-radius: 15px; margin-bottom: 20px;
+            border: 1px solid #4a1d75; box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+        }
+        .caja-explicativa ul { margin: 10px 0 0 0; padding-left: 25px; }
+        .caja-explicativa li { margin-bottom: 10px; }
+
+        .btn-evento-flotante { position: absolute; top: -25px; width: 60px; height: 60px; cursor: pointer; z-index: 10; border: none; background: transparent; }
+        #ciber-policia-container { left: 15px; font-size: 3.8rem; filter: drop-shadow(0 0 10px var(--naranja-halloween)); }
+        #btn-ruleta-container { right: 15px; font-size: 3.5rem; filter: drop-shadow(0 0 10px var(--amarillo-fantasma)); }
+
+        .panel-pregunta { background: var(--bg-panel); color: white; width: 95%; max-width: 800px; border-radius: 20px; padding: 25px; border: 2px solid #4a1d75; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.9); }
+        #contenedor-opciones { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .btn-opcion { background: #0d021a; border: 1px solid #3d1b5a; padding: 15px; font-size: 1rem; color: white; font-weight: 700; border-radius: 10px; cursor: pointer; text-align: left; transition: 0.2s; }
+        .btn-opcion:hover { border-color: var(--naranja-halloween); background: #2a0845; }
+        .btn-opcion.correcta { background: var(--verde-zombie) !important; color: #000; font-weight: 900; }
+        .btn-opcion.incorrecta { background: var(--rojo-vampiro) !important; color: white; }
+
+        #contenedor-marcadores { display: flex; gap: 10px; width: 100%; justify-content: center; flex-wrap: wrap; margin-bottom: 15px; }
+        .marcador-eq { width: 110px; padding: 8px; border-radius: 10px; background: #1a0933; opacity: 0.6; border: 2px solid transparent; }
+        .marcador-eq.marcador-activo { opacity: 1; transform: scale(1.05); border-color: var(--naranja-halloween); box-shadow: 0 0 10px var(--naranja-halloween); }
+
+        .ruleta-wrapper { position: relative; width: 220px; height: 220px; margin: 15px auto; border-radius: 50%; border: 6px solid var(--naranja-halloween); overflow: hidden; }
+        .ruleta-bg { width: 100%; height: 100%; background: conic-gradient(#ff6600 0% 20%, #9d00ff 20% 40%, #00ff66 40% 60%, #ffcc00 60% 80%, #ff0033 80% 100%); transition: transform 3s cubic-bezier(0.1, 0.8, 0.1, 1); }
+        .ruleta-pointer { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 20px solid var(--amarillo-fantasma); z-index: 5; }
+        
+        .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.88); z-index:10000; align-items:center; justify-content:center; }
+        .modal-content { background: var(--bg-panel); color: white; padding: 25px; border-radius: 20px; text-align: center; max-width: 420px; width: 90%; border: 2px solid var(--naranja-halloween); box-shadow: 0 0 25px var(--naranja-halloween); }
+
+        .puntos-flow { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Creepster', cursive; font-size: 4rem; z-index: 9999; pointer-events: none; animation: puntosFlowUp 2s ease-out forwards; display: none; }
+        #puntos-flow-gold { color: var(--amarillo-fantasma); text-shadow: 0 0 20px var(--amarillo-fantasma); }
+        #puntos-flow-error { color: var(--rojo-vampiro); text-shadow: 0 0 20px var(--rojo-vampiro); }
+        @keyframes puntosFlowUp { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } 20% { opacity: 1; transform: translate(-50%, -60%) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -200px) scale(0.8); } }
+        
+        .rank-fila { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; margin: 8px 0; border-radius: 10px; background: rgba(255,255,255,0.05); border-left: 8px solid transparent; font-family: 'Creepster', cursive; font-size: 1.4rem; letter-spacing: 1px; }
+        .rank-1 { background: rgba(255, 102, 0, 0.2); border: 1px solid var(--naranja-halloween); transform: scale(1.03); }
+
+        .diploma-container { background: #0d021a; color: white; border: 4px solid var(--naranja-halloween); padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 0 40px rgba(255,102,0,0.5); max-width: 800px; }
+
+        .autor-credito {
+            margin-top: 15px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--amarillo-fantasma);
+            text-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- EFECTOS DE PUNTOS -->
+    <div id="puntos-flow-gold" class="puntos-flow">+100</div>
+    <div id="puntos-flow-error" class="puntos-flow">-50</div>
+
+    <!-- PANTALLA INICIAL -->
+    <div id="screen-inicio" class="screen active">
+        <div class="ventana-ciber">
+            <div class="badge-lateral badge-tutoria">31 DE OCTUBRE</div>
+            <div class="badge-lateral badge-primaria">EDUCACIÓN PRIMARIA</div>
+            <h1 class="titulo-juego">EL MISTERIO DE HALLOWEEN 🎃👻</h1>
+            <p style="font-weight: 700; color: var(--naranja-halloween); margin: 5px 0;">Junta de Andalucía - Cuestionario Interactivo sobre los Orígenes y Tradiciones de Halloween</p>
+            
+            <div style="font-size: 4.5rem; margin: 20px 0; display: flex; justify-content: center; gap: 20px;">
+                <span class="emoji-grande">🎃</span>
+                <span class="emoji-grande" style="animation-delay: 0.3s;">👻</span>
+                <span class="emoji-grande" style="animation-delay: 0.6s;">🦇</span>
+            </div>
+            
+            <p style="font-size: 1.1rem; font-weight: 700;">Selecciona número de equipos:</p>
+            <div class="selector-equipos">
+                <button class="btn-jug" onclick="seleccionarJugadores(1)">1</button>
+                <button class="btn-jug" onclick="seleccionarJugadores(2)">2</button>
+                <button class="btn-jug seleccionado" onclick="seleccionarJugadores(3)">3</button>
+                <button class="btn-jug" onclick="seleccionarJugadores(4)">4</button>
+                <button class="btn-jug" onclick="seleccionarJugadores(5)">5</button>
+                <button class="btn-jug" onclick="seleccionarJugadores(6)">6</button>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 10px; margin: 15px 0; border: 1px solid #4a1d75;">
+                <label style="cursor: pointer; font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <input type="checkbox" id="check-tiempo" checked style="transform: scale(1.4);"> Temporizador Fantasmagórico (30 seg por reto)
+                </label>
+            </div>
+
+            <button class="btn-accion" onclick="irACiberconvivencia()">¡DESCUBRIR LA HISTORIA!</button>
+            <div class="autor-credito">Aplicación elaborada por el maestro Carlos Garrido</div>
+        </div>
+    </div>
+
+    <!-- PANTALLA EXPLICATIVA 1: ORIGEN CELTA -->
+    <div id="screen-ciberconvivencia" class="screen">
+        <div class="ventana-ciber">
+            <h1 style="color: var(--naranja-halloween);">¿CUÁL ES EL ORIGEN DE HALLOWEEN? 🌾🔥</h1>
+            <button class="btn-audio" onclick="leerCiberconvivencia()">🔊 Escuchar Explicación</button>
+            
+            <div class="caja-explicativa">
+                <p style="margin-top:0;">Hace más de 2.000 años, los <strong>Celtas</strong> celebraban una festividad llamada <em>Samhain</em> (que significa "fin del verano") para despedir las cosechas y dar la bienvenida al año nuevo celta.</p>
+                <p>Curiosidades del origen de Halloween:</p>
+                <ul>
+                    <li><strong>Encendían grandes hogueras</strong> para ahuyentar a los malos espíritus y dar gracias por los alimentos guardados para el invierno.</li>
+                    <li><strong>Se disfrazaban con pieles y máscaras</strong> para confundir a los espíritus y que no supieran que eran humanos.</li>
+                    <li><strong>Dejaban comida en las puertas</strong> de sus casas como ofrecimiento pacificadores para las almas de los antepasados.</li>
+                </ul>
+            </div>
+            
+            <button class="btn-accion" onclick="irANetiqueta()">SIGUIENTE: TRADICIONES Y SIGNIFICADO ➔</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA EXPLICATIVA 2: SIGNIFICADO Y SIMBOLOS -->
+    <div id="screen-netiqueta" class="screen">
+        <div class="ventana-ciber">
+            <h1 style="color: var(--amarillo-fantasma);">¿POR QUÉ SE CELEBRA HOY? 🎃🍬</h1>
+            <button class="btn-audio" onclick="leerNetiqueta()">🔊 Escuchar Explicación</button>
+
+            <div class="caja-explicativa">
+                <p style="margin-top:0;">El nombre <strong>Halloween</strong> procede de la frase en inglés <em>"All Hallows' Eve"</em>, que significa la "Víspera de Todos los Santos".</p>
+                <p>Nuestras tradiciones actuales nacieron así:</p>
+                <ul>
+                    <li><strong>Truco o Trato:</strong> Proviene de una costumbre medieval europea en la que los niños pedían "pasteles de alma" a cambio de rezar por las familias.</li>
+                    <li><strong>La Calabaza de Jack:</strong> Nació de una leyenda irlandesa sobre "Jack el Tacaño". Al principio tallaban nabos, pero en América usaron calabazas porque había muchas más.</li>
+                    <li><strong>Los Disfraces Divertidos:</strong> Hoy nos disfrazamos para jugar, divertirnos con nuestros compañeros y celebrar la llegada del otoño en el colegio.</li>
+                </ul>
+            </div>
+
+            <button class="btn-accion" onclick="irAHistoria()">¡IR A LA HISTORIA DE LA MISIÓN!</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA HISTORIA E INTRODUCCIÓN -->
+    <div id="screen-historia" class="screen">
+        <div class="ventana-ciber">
+            <h1 style="color: var(--amarillo-fantasma);">¡ATENCIÓN CAZADORES DE MISTERIOS! 🧙‍♀️</h1>
+            <div class="caja-explicativa">
+                <p>¡Bienvenidos a la gran aventura educativa de <strong>Halloween</strong>! Hoy no solo nos disfrazamos y compartimos chuches, sino que nos convertimos en verdaderos investigadores de la historia mundial.</p>
+                <p>A través de estos 40 retos divididos en 4 bloques exploraremos los <strong>orígenes celtas</strong>, los <strong>símbolos mágicos</strong>, las <strong>leyendas populares</strong> y la <strong>celebración intercultural</strong> en nuestro entorno.</p>
+                <p>Recordad: ¡El mejor equipo no es solo el que sabe más datos, sino el que colabora con respeto, deportividad y alegría en clase!</p>
+            </div>
+            <button class="btn-accion" onclick="empezarJuego()">¡EMPEZAR EL RETO MÁGICO!</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE JUEGO -->
+    <div id="screen-juego" class="screen">
+        <div id="contenedor-marcadores"></div>
+        <div class="panel-pregunta">
+            <button id="ciber-policia-container" class="btn-evento-flotante" onclick="abrirCiberPolicia()">🧙‍♀️</button>
+            <button id="btn-ruleta-container" class="btn-evento-flotante" onclick="abrirModalRuleta()">🎡</button>
+            
+            <div class="game-header">
+                <span id="ind-nivel" class="nivel-text">BLOQUE 1</span>
+                <span id="cont-pregunta" class="pregunta-text">RETO 1 de 10</span>
+            </div>
+            
+            <div class="progress-container"><div id="progress-bar" class="progress-bar"></div></div>
+            <div id="dots-container" class="dots-container">
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            </div>
+
+            <div class="timer-container" id="timer-container-box"><div id="timer-bar"></div></div>
+            <div id="icono-nivel-container"></div>
+            <div id="texto-pregunta" style="font-size: 1.4rem; font-weight: 800; margin: 10px 0;"></div>
+            <div id="contenedor-opciones"></div>
+        </div>
+    </div>
+
+    <!-- PANTALLA TRANSICIÓN ENTRE BLOQUES -->
+    <div id="screen-transicion" class="screen">
+        <div class="ventana-ciber">
+            <div style="font-size: 4rem;">⚡ 🎃 ⚡</div>
+            <h1 style="color: var(--verde-zombie);">¡BLOQUE MÁGICO COMPLETADO!</h1>
+            <p style="font-size: 1.3rem;">Siguiente nivel de la investigación:</p>
+            <h2 id="nombre-siguiente-nivel" style="color: var(--naranja-halloween); font-family: 'Creepster'; font-size: 2rem;"></h2>
+            <div style="font-size: 2.5rem; margin: 15px;">🕯️ 👻 🦇</div>
+            <button class="btn-accion" onclick="continuarSiguienteNivel()">¡CONTINUAR LA AVENTURA!</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA FINAL - RANKING -->
+    <div id="screen-final" class="screen">
+        <div class="ventana-ciber">
+            <h1 class="titulo-juego">CLASIFICACIÓN DE HALLOWEEN</h1>
+            <div style="font-size: 3.5rem; margin-bottom: 15px;">🏆🎃</div>
+            <div id="contenedor-ranking" style="width: 100%; text-align: left;"></div>
+            <button class="btn-accion" style="margin-top:25px; background: var(--amarillo-fantasma); color: #000;" onclick="mostrarDiploma()">OBTENER DIPLOMA DE MAESTRO DE HALLOWEEN 📜</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA DIPLOMA / CERTIFICADO -->
+    <div id="screen-diploma" class="screen">
+        <div class="diploma-container">
+            <div style="font-size: 5rem; margin-bottom: 10px;">🏅🎃🧙‍♀️</div>
+            <h1 style="color: var(--naranja-halloween); font-family: 'Creepster'; font-size: 2.8rem; margin: 10px 0;">DIPLOMA DE EXPERTO EN HALLOWEEN</h1>
+            <h2 style="color: var(--amarillo-fantasma); font-size: 1.8rem; margin: 10px 0;">EDUCACIÓN PRIMARIA - 31 DE OCTUBRE</h2>
+            <p style="font-size: 1.3rem; line-height: 1.6; padding: 15px; border-radius: 12px; background: rgba(255,255,255,0.05); margin: 20px; border: 1px solid #4a1d75;">
+                Habéis demostrado conocer la verdadera historia de <strong style="color: var(--naranja-halloween);">Samhain y Halloween</strong>, comprendiendo sus orígenes celtas, el significado de sus símbolos y el valor del respeto intercultural.<br><br>
+                ¡Enhorabuena, sois auténticos Maestros de la Historia y las Tradiciones!
+            </p>
+            <button class="btn-accion" onclick="location.reload()">REINICIAR DESAFÍO</button>
+        </div>
+    </div>
+
+    <!-- MODAL BRUJA / MAGO TUTOR -->
+    <div id="modal-ciberpolicia" class="modal-overlay">
+        <div class="modal-content">
+            <h2 style="color: var(--naranja-halloween); font-family: 'Creepster'; font-size: 2rem;">🧙‍♀️ LA BRUJA DE LA HISTORIA 🧙‍♀️</h2>
+            <p id="ciberpolicia-texto" style="font-size:1.4rem; font-weight: 700;"></p>
+            
+            <div id="intercambio-equipos-policia" style="display:none; margin-bottom: 15px;">
+                <p style="font-weight:bold;">Elige el equipo para realizar el intercambio de pócimas:</p>
+                <div id="lista-intercambio-policia" style="display:flex; flex-direction:column; gap:5px;"></div>
+            </div>
+
+            <button id="btn-cerrar-policia" class="btn-accion" onclick="cerrarCiberPolicia()" style="margin: 0 auto; display: block;">¡ENTENDIDO!</button>
+        </div>
+    </div>
+    
+    <!-- MODAL RULETA MÁGICA -->
+    <div id="modal-ruleta" class="modal-overlay">
+        <div class="modal-content">
+            <h2 style="color: var(--amarillo-fantasma); font-family: 'Creepster'; font-size: 2rem;">🎡 RULETA MÁGICA DE HALLOWEEN 🎡</h2>
+            <div class="ruleta-wrapper"><div class="ruleta-pointer"></div><div id="ruleta-fisica" class="ruleta-bg"></div></div>
+            <p id="ruleta-texto" style="font-size:1.3rem; font-weight: 700; min-height: 50px;"></p>
+            
+            <div id="intercambio-equipos-ruleta" style="display:none; margin-bottom: 15px;">
+                <p style="font-weight:bold;">Elige el equipo para realizar el hechizo de intercambio:</p>
+                <div id="lista-intercambio-ruleta" style="display:flex; flex-direction:column; gap:5px;"></div>
+            </div>
+
+            <button id="btn-tirar-ruleta" class="btn-accion" onclick="girarRuleta()" style="margin: 0 auto; display: block;">¡GIRAR RULETA!</button>
+            <button id="btn-cerrar-ruleta" class="btn-accion" onclick="cerrarRuleta()" style="display:none; margin: 0 auto;">¡ACEPTAR!</button>
+        </div>
+    </div>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let numEquipos = 3, equipos = [], nivelActual = 0, preguntaActual = 0, turnoEquipo = 0;
+        let timerInterval, timeLeft;
+        let eventosDelNivel = [];
+
+        // EVENTOS DE LA BRUJA MÁGICA
+        let premiosCiberPolicia = [
+            { p: 100, msg: "¡Ayudaste a preparar la decoración de Halloween del colegio! +100 pts" },
+            { p: 200, msg: "¡Compartiste tus caramelos de Truco o Trato con un compañero! +200 pts" },
+            { p: 300, msg: "¡Explicaste a tus amigos el origen celta de Samhain! +300 pts" },
+            { p: 400, msg: "¡Diseñaste un disfraz reciclado cuidando el medio ambiente! +400 pts" },
+            { p: 500, msg: "¡Respetaste las tradiciones de otros compañeros de la clase! +500 pts" },
+            { p: 600, msg: "¡Recogiste los envoltorios de golosinas del suelo del patio! +600 pts" },
+            { p: 700, msg: "¡Escribiste un relato divertido de miedo en la clase de Lengua! +700 pts" },
+            { p: 800, msg: "¡Incluiste a un amigo nuevo en las actividades del recreo! +800 pts" },
+            { p: 900, msg: "¡Aprendiste el nombre en inglés de diez símbolos de Halloween! +900 pts" },
+            { p: 1000, msg: "¡Eres un auténtico Guardián de la Historia y la Convivencia! +1000 pts" },
+            { p: "intercambio", msg: "¡Hechizo de Transmutación! Intercambia puntos con otro equipo." },
+            { p: "intercambio", msg: "¡Hechizo de Transmutación! Intercambia puntos con otro equipo." },
+            { p: "intercambio", msg: "¡Hechizo de Transmutación! Intercambia puntos con otro equipo." }
+        ];
+
+        // BANCO DE PREGUNTAS (4 BLOQUES TEMÁTICOS SOBRE HALLOWEEN)
+        const niveles = [
+            { nombre: "BLOQUE 1: ORIGENES CELTAS Y EL SAMHAIN", p: [
+                { q: "¿De qué antiguo pueblo proviene la celebración original que dio origen a Halloween?", a: ["De la cultura celta que habitaba en Europa.", "De los antiguos egipcios que construían pirámides.", "De los gladiadores romanos en el Coliseo.", "De los navegantes vikingos del norte."], c: 0 },
+                { q: "¿Cómo se llamaba la fiesta celta con la que comenzaba el año nuevo y finalizaba el verano?", a: ["Samhain.", "Lupercalia.", "Ostara.", "Beltane."], c: 0 },
+                { q: "¿Por qué encendían los celtas grandes hogueras durante la noche de Samhain?", a: ["Para ahuyentar espíritus y dar gracias por las cosechas recopiladas.", "Para enviar señales de humo a otros pueblos lejanos.", "Para cocinar alimentos para todo el año entero.", "Para dar luz a los barcos en el mar."], c: 0 },
+                { q: "¿Qué utilizaban originalmente los celtas como máscaras y trajes para confundirse con las sombras?", a: ["Pieles, cabezas de animales y ropa vieja.", "Máscaras de plástico compradas en tiendas.", "Sábanas blancas cortadas con tijeras.", "Trajes de superhéroes y capa."], c: 0 },
+                { q: "¿Qué estación del año comenzaba simbólicamente tras la celebración de la fiesta de Samhain?", a: ["El invierno y la época oscura del año.", "La primavera floreciente y calurosa.", "El verano de vacaciones escolares.", "La temporada de lluvias torrenciales de verano."], c: 0 },
+                { q: "¿Por qué dejaban los celtas platos con comida en las puertas de sus viviendas?", a: ["Como ofrecimiento pacificador para los espíritus y antepasados.", "Para alimentar a los animales del bosque.", "Porque no tenían mesas dentro de las casas.", "Para que los vecinos la probaran por la mañana."], c: 0 },
+                { q: "¿En qué país de Europa tuvo sus raíces más profundas la festividad de Samhain?", a: ["Irlanda y Gran Bretaña.", "Grecia y Chipre.", "Italia y España.", "Alemania y Noruega."], c: 0 },
+                { q: "El Samhain marcaba la transición fundamental entre dos periodos del año llamados...", a: ["La mitad de la luz (verano) y la mitad de la oscuridad (invierno).", "El año escolar y las vacaciones.", "La época de lluvias y la de sequía.", "La siembra y la tala de árboles."], c: 0 },
+                { q: "¿Qué tipo de líderes espirituales o sabios dirigían las ceremonias durante el Samhain celta?", a: ["Los Druidas.", "Los Faraones.", "Los Emperadores.", "Los Caballeros medievales."], c: 0 },
+                { q: "El valor cultural de conocer la historia antigua de festividades como Samhain radica en...", a: ["Comprender el origen de nuestras costumbres y respetar la diversidad de culturas.", "Aprender a hacer fuego con piedras.", "Comprar más disfraces cada año.", "Memorizar fechas sin sentido."], c: 0 }
+            ]},
+            { nombre: "BLOQUE 2: SIGNIFICADO Y SIMBOLOS MÁGICOS", p: [
+                { q: "¿De qué frase inglesa antigua procede directamente la palabra actual 'Halloween'?", a: ["'All Hallows' Eve' (Víspera de Todos los Santos).", " 'How are you win' (Cómo ganarás).", "'Hollow Tree Win' (Victoria del árbol hueco).", "'All Happy Night' (Noche de todos felices)."], c: 0 },
+                { q: "¿Qué verdura usaban originalmente en Irlanda para tallar faroles antes de descubrir la calabaza?", a: ["El nabo o la remolacha.", "La patata gigante.", "El calabacín largo.", "El tomate maduro."], c: 0 },
+                { q: "¿Cuál es el personaje de la leyenda irlandesa que dio origen a la linterna de calabaza?", a: ["Jack el Tacaño (Jack o' Lantern).", "El Fantasma de la Ópera.", "El Mago Merlín.", "El Conde Drácula."], c: 0 },
+                { q: "¿Por qué al llegar a América se empezó a usar la calabaza en lugar de los nabos?", a: ["Porque las calabazas eran más abundantes, blandas y fáciles de tallar.", "Porque los nabos estaban prohibidos por ley.", "Porque las calabazas duraban diez años sin estropearse.", "Porque tenían un color morado muy bonito."], c: 0 },
+                { q: "¿Qué animal nocturno se asociaba popularmente con las brujas debido a su visión en la penumbra?", a: ["El gato negro y el búho.", "El perro labrador.", "El conejo de campo.", "La paloma blanca."], c: 0 },
+                { q: "¿Por qué los murciélagos son un símbolo representativo del otoño y Halloween?", a: ["Por sus costumbres nocturnas y porque volaban cerca de las hogueras a cazar insectos.", "Porque son aves que cantan por la noche.", "Porque solo salen una vez al año el 31 de octubre.", "Porque comen calabazas cocinadas."], c: 0 },
+                { q: "¿Qué representa el color NARANJA en la decoración tradicional de Halloween?", a: ["La cosecha de otoño y la madurez de los frutos de la tierra.", "El mar y los ríos profundos.", "La nieve y el frío del invierno.", "La primavera y las flores nuevas."], c: 0 },
+                { q: "¿Qué representa el color NEGRO combinado con el naranja en esta festividad?", a: ["La llegada de la noche, la oscuridad del invierno y el misterio.", "La luz del sol al mediodía.", "El color de la hierba fresca.", "La alegría de los fuegos artificiales."], c: 0 },
+                { q: "En la tradición popular, los esqueletos y fantasmas simbolizan...", a: ["El recuerdo de los seres que vivieron en el pasado dentro de los relatos orales.", "Animales extinguidos de la prehistoria.", "Monstruos espaciales que vienen de otro planeta.", "Personajes de cómics modernos."], c: 0 },
+                { q: "La costumbre de poner una vela encendida dentro de la calabaza tallada servía para...", a: ["Guiar a las almas buenas y mantener alejados a los espíritus extraviados.", "Cocinar la calabaza por dentro lentamente.", "Decorar las mesas de los exámenes de la escuela.", "Evitar que los pájaros entraran en casa."], c: 0 }
+            ]},
+            { nombre: "BLOQUE 3: LEYENDAS Y TRADICIONES POPULARES", p: [
+                { q: "¿De qué costumbre medieval nació la famosa tradición actual del 'Truco o Trato' (Trick or Treat)?", a: ["De pedir 'pasteles de alma' (Soul cakes) a cambio de oraciones por los difuntos.", "De vender golosinas de puerta en puerta para ahorrar dinero.", "De hacer bromas pesadas a los vecinos del pueblo.", "De intercambiar disfraces entre familias al caer la tarde."], c: 0 },
+                { q: "En la tradición del 'Truco o Trato', ¿qué significa ofrecer el 'Trato'?", a: ["Entregar un dulce o golosina para celebrar la visita alegre.", "Regalar una calabaza vacía para tallar.", "Prometer estudiar más para el colegio.", "Intercambiar la ropa por un disfraz."], c: 0 },
+                { q: "¿Qué juego popular tradicional de otoño consiste en coger fruta con la boca dentro de un cubo con agua?", a: ["El juego de atrapar la manzana en el agua (Apple Bobbing).", "Lanzar la calabaza más lejana.", "Buscar nueces escondidas en la hierba.", "Carreras de sacos embrujados."], c: 0 },
+                { q: "¿Qué famoso escritor de literatura creó al legendario personaje del 'Sin Cabeza' de Sleepy Hollow?", a: ["Washington Irving.", "J.K. Rowling.", "J.R.R. Tolkien.", "Julio Verne."], c: 0 },
+                { q: "Las brujas de los cuentos tradicionales a menudo preparaban brebajes en grandes recipientes llamados...", a: ["Calderos.", "Cazuelas de barro.", "CANTIMPLORAS de plástico.", "Sartenes mágicas."], c: 0 },
+                { q: "¿Qué elemento volador atribuía la tradición de los cuentos de hadas a las brujas para desplazarse?", a: ["Una escoba de paja.", "Una alfombra voladora.", "Un paraguas gigante.", "Una cometa de papel."], c: 0 },
+                { q: "En México se celebra en fechas muy parecidas una festividad hermosa y colorida llamada...", a: ["El Día de los Muertos.", "El Festival del Sol.", "La Fiesta de la Primavera.", "El Día de la Cosecha."], c: 0 },
+                { q: "¿Qué elemento fundamental adorna las ofrendas del Día de Muertos tradicional en la cultura mexicana?", a: ["Flores de Cempasúchil, fotos, pan de muerto y velas.", "Calabazas gigantes rellenas de caramelos.", "Máscaras de plástico y capas de vampiro.", "Muñecos de nieve y guirnaldas verdes."], c: 0 },
+                { q: "¿Cómo se llama el famoso vampiro de la literatura clásica creado por el autor Bram Stoker?", a: ["El Conde Drácula.", "El Hombre Lobo.", "Frankenstein.", "El Fantasma de Canterville."], c: 0 },
+                { q: "El personaje de Frankenstein fue creado en una célebre novela por la escritora...", a: ["Mary Shelley.", "Agatha Christie.", "J.K. Rowling.", "Gloria Fuertes."], c: 0 }
+            ]},
+            { nombre: "BLOQUE 4: CELEBRACIÓN INTERCULTURAL Y CONVIVENCIA", p: [
+                { q: "En España y Andalucía, el 1 de noviembre celebramos tradicionalmente el Día de...", a: ["Todos los Santos.", "La Constitución.", "Andalucía.", "San Juan."], c: 0 },
+                { q: "En muchos pueblos andaluces, en esta época otoñal es muy tradicional comer...", a: ["Castañas asadas, gachas y frutos secos.", "Helados de fresa y limonada fría.", "Turrón de chocolate y mantecados.", "Paella de marisco al aire libre."], c: 0 },
+                { q: "¿Cómo llaman en algunas zonas de Andalucía a la fiesta de recolección de castañas en otoño?", a: ["La Tosantos o el Tosantos / Castañada.", "La Romería de Primavera.", "El Veranillo de San Miguel.", "La Feria de Otoño."], c: 0 },
+                { q: "¿Por qué es enriquecedor celebrar Halloween en el colegio respetando nuestras propias costumbres?", a: ["Porque aprendemos historia, compartimos culturas distintas y convivimos con respeto.", "Porque así no tenemos que dar clases en todo el año.", "Porque nos regalan juguetes caros.", "Porque es obligatorio por la ley de deportes."], c: 0 },
+                { q: "Al disfrazarnos en el colegio para Halloween, la actitud más respetuosa y responsable es...", a: ["Elegir disfraces divertidos sin burlarnos ni asustar a los niños más pequeños.", "Comprar el disfraz más caro para presumir ante los demás.", "Asustar a todo el mundo para que lloren.", "No dejar jugar a quienes no traigan disfraz."], c: 0 },
+                { q: "Si compartimos frutos secos o caramelos en el recreo de Halloween debemos tener especial cuidado con...", a: ["Las alergias e intolerancias alimentarias de nuestros compañeros.", "El color del envoltorio de la golosina.", "Ver quién come más rápido.", "Esconderlos para que nadie los vea."], c: 0 },
+                { q: "Una forma sostenible y creativa de preparar nuestro disfraz para el colegio es...", a: ["Reutilizar ropa vieja, cartones y materiales reciclados en familia.", "Comprar tres disfraces nuevos en la tienda.", "Usar envases de plástico de un solo uso y tirarlos al suelo.", "Pedir a los maestros que nos compren el traje."], c: 0 },
+                { q: "Al terminar la fiesta de Halloween en nuestra aula, la responsabilidad del alumnado es...", a: ["Recoger la decoración, limpiar las mesas y dejar el aula ordenada.", "Salir corriendo al patio sin recoger nada.", "Tirar las calabazas por la ventana.", "Decirle al conserje que limpie todo solo."], c: 0 },
+                { q: "¿Qué valor ético ejercitamos al celebrar tradiciones de otros países como el Halloween en clase?", a: ["Tolerancia, curiosidad cultural y respeto a la diversidad mundial.", "Competencia agresiva entre compañeros.", "Olvidar por completo nuestras tradiciones locales.", "Enfadarnos con los que piensen diferente."], c: 0 },
+                { q: "En definitiva, celebrar Halloween en nuestro colegio nos ayuda a...", a: ["Fomentar la convivencia, desarrollar la creatividad y aprender jugando juntos.", "Tener miedo a la oscuridad de la noche.", "Comer golosinas sin lavarnos los dientes.", "Ver películas de terror en clase todo el día."], c: 0 }
+            ]}
+        ];
+
+        // PREMIOS DE LA RULETA MÁGICA
+        const premiosRuleta = [
+            { p: 50, msg: "¡Encontraste un caramelo de menta mágica! +50 pts." },
+            { p: 100, msg: "¡Recogiste tres castañas asadas de otoño! +100 pts." },
+            { p: 150, msg: "¡Descubriste una calabaza tallada sonriente! +150 pts." },
+            { p: 200, msg: "¡Recitaste un poema de otoño frente a la clase! +200 pts." },
+            { p: 250, msg: "¡Diseñaste una pócima de la amistad sin monstruos! +250 pts." },
+            { p: 300, msg: "¡Ayudaste a un fantasma despistado a encontrar su camino! +300 pts." },
+            { p: 350, msg: "¡Fabricaste un disfraz brillante con cartón reciclado! +350 pts." },
+            { p: 400, msg: "¡Compartiste tus galletas de murciélago en el recreo! +400 pts." },
+            { p: 450, msg: "¡Descifraste un enigma de la historia de los celtas! +450 pts." },
+            { p: 500, msg: "¡Encendiste la luz de la calabaza protectora! +500 pts." },
+            { p: 600, msg: "¡Gran banquete de frutos de otoño en el colegio! +600 pts." },
+            { p: 700, msg: "¡Pócima de la Sabiduría Mágica concedida! +700 pts." },
+            { p: 800, msg: "¡Demostración de compañerismo en la fiesta de Halloween! +800 pts." },
+            { p: 1000, msg: "¡SUPER HECHIZO DEL GUARDIÁN DE HALLOWEEN! +1000 pts." },
+            { p: -50, msg: "Un murciélago travieso te distrajo en el pasillo: -50 pts." },
+            { p: -100, msg: "Olvidaste tirar el envoltorio del dulce a la papelera: -100 pts." },
+            { p: -150, msg: "Un gato negro volcó tu frasco de pintura de calabaza: -150 pts." },
+            { p: -200, msg: "Te asustaste con una sombra y diste un traspiés: -200 pts." },
+            { p: "intercambio", msg: "¡Estrategia Mágica! Intercambio de puntos. Elige con quién." },
+            { p: "intercambio", msg: "¡Estrategia Mágica! Intercambio de puntos. Elige con quién." }
+        ];
+
+        function seleccionarJugadores(n) { 
+            numEquipos = n; 
+            document.querySelectorAll('.btn-jug').forEach((b, i) => b.classList.toggle('seleccionado', (i+1)===n)); 
+        }
+
+        // NAVEGACIÓN INICIAL DE PANTALLAS
+        function irACiberconvivencia() {
+            document.getElementById('screen-inicio').classList.remove('active');
+            document.getElementById('screen-ciberconvivencia').classList.add('active');
+            leerCiberconvivencia();
+        }
+
+        function leerCiberconvivencia() {
+            hablar("Hace más de 2000 años, los Celtas celebraban una festividad llamada Samhain para despedir las cosechas y dar la bienvenida a su año nuevo. Encendían grandes hogueras para protegerse, se disfrazaban con pieles para confundir a los espíritus y dejaban comida en sus puertas.");
+        }
+
+        function irANetiqueta() {
+            window.speechSynthesis.cancel();
+            document.getElementById('screen-ciberconvivencia').classList.remove('active');
+            document.getElementById('screen-netiqueta').classList.add('active');
+            leerNetiqueta();
+        }
+
+        function leerNetiqueta() {
+            hablar("La palabra Halloween proviene de All Hallows' Eve, que significa la Víspera de Todos los Santos. La tradición del Truco o Trato nació de pedir pasteles de alma a cambio de oraciones, y las calabazas talladas se basan en la famosa leyenda irlandesa de Jack el Tacaño.");
+        }
+
+        function irAHistoria() {
+            window.speechSynthesis.cancel();
+            document.getElementById('screen-netiqueta').classList.remove('active');
+            document.getElementById('screen-historia').classList.add('active');
+            hablar("Bienvenidos a la aventura educativa de Halloween. Aprenderemos sobre los orígenes celtas, los símbolos mágicos, las leyendas populares y el valor del respeto intercultural en nuestro colegio.");
+        }
+
+        function empezarJuego() {
+            window.speechSynthesis.cancel();
+            equipos = []; const colores = ['var(--eq1)', 'var(--eq2)', 'var(--eq3)', 'var(--eq4)', 'var(--eq5)', 'var(--eq6)'];
+            for(let i=0; i<numEquipos; i++) equipos.push({ nombre: `Equipo ${i+1}`, pts: 0, color: colores[i] });
+            
+            premiosCiberPolicia.sort(() => Math.random() - 0.5);
+
+            document.getElementById('screen-historia').classList.remove('active');
+            document.getElementById('screen-juego').classList.add('active');
+            actualizarMarcadores(); mostrarPregunta();
+        }
+
+        function generarEventosDelNivel(nivelIdx) {
+            eventosDelNivel = Array(10).fill('none');
+            let numPolicias = 2; let numRuletas = 2; 
+            let disponibles = [0,1,2,3,4,5,6,7,8,9];
+            disponibles.sort(() => Math.random() - 0.5);
+            for(let i=0; i<numPolicias; i++) eventosDelNivel[disponibles.pop()] = 'policia';
+            for(let i=0; i<numRuletas; i++) eventosDelNivel[disponibles.pop()] = 'ruleta';
+        }
+
+        function actualizarIconoNivel(nivelIdx) {
+            const container = document.getElementById('icono-nivel-container');
+            let htmlIcono = '';
+            switch(nivelIdx) {
+                case 0: htmlIcono = '<span class="emoji-grande">🌾</span><span class="emoji-grande">🔥</span>'; break;
+                case 1: htmlIcono = '<span class="emoji-grande">🎃</span><span class="emoji-grande">🕯️</span>'; break;
+                case 2: htmlIcono = '<span class="emoji-grande">🍬</span><span class="emoji-grande">🦇</span>'; break;
+                case 3: htmlIcono = '<span class="emoji-grande">🌰</span><span class="emoji-grande">👻</span>'; break;
+                default: htmlIcono = '<span class="emoji-grande">🧙‍♀️</span>';
+            }
+            container.innerHTML = htmlIcono;
+        }
+
+        function actualizarProgreso() {
+            const progreso = (preguntaActual / 9) * 100;
+            document.getElementById('progress-bar').style.width = `${progreso}%`;
+            const dots = document.getElementById('dots-container').children;
+            for(let i = 0; i < 10; i++) {
+                dots[i].className = 'dot';
+                if (i < preguntaActual) dots[i].classList.add('passed');
+                if (i === preguntaActual) dots[i].classList.add('active');
+            }
+        }
+
+        function mostrarPregunta() {
+            clearInterval(timerInterval);
+            if (preguntaActual === 0) generarEventosDelNivel(nivelActual);
+
+            const niv = niveles[nivelActual]; const p = niv.p[preguntaActual];
+            document.getElementById('ind-nivel').innerText = niv.nombre;
+            document.getElementById('cont-pregunta').innerText = `RETO ${preguntaActual + 1} de 10`;
+            actualizarIconoNivel(nivelActual);
+            document.getElementById('texto-pregunta').innerText = p.q;
+            
+            actualizarProgreso();
+
+            let indices = [0, 1, 2, 3]; indices.sort(() => Math.random() - 0.5);
+            const cont = document.getElementById('contenedor-opciones'); cont.innerHTML = '';
+            let tOpc = ""; const letras = ["A", "B", "C", "D"];
+
+            indices.forEach((idx, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-opcion'; btn.innerText = p.a[idx];
+                btn.onclick = () => verificarRespuesta(idx);
+                cont.appendChild(btn);
+                tOpc += ` Opción ${letras[i]}: ${p.a[idx]}.`;
+            });
+
+            const eventoActivo = eventosDelNivel[preguntaActual];
+            const hasH = (eventoActivo === 'policia');
+            const hasW = (eventoActivo === 'ruleta');
+
+            document.getElementById('ciber-policia-container').style.display = hasH ? 'block' : 'none';
+            document.getElementById('btn-ruleta-container').style.display = hasW ? 'block' : 'none';
+
+            let msg = `${equipos[turnoEquipo].nombre}: ${p.q}`;
+            hablar(msg);
+
+            iniciarTimer();
+        }
+
+        function iniciarTimer() {
+            const checkTime = document.getElementById('check-tiempo').checked;
+            const containerBox = document.getElementById('timer-container-box');
+            if(!checkTime) { containerBox.style.display = 'none'; return; }
+            containerBox.style.display = 'block';
+            timeLeft = 30; 
+            const bar = document.getElementById('timer-bar'); bar.style.width = "100%";
+            timerInterval = setInterval(() => {
+                timeLeft--; bar.style.width = (timeLeft / 30 * 100) + "%";
+                if(timeLeft <= 0) { clearInterval(timerInterval); verificarRespuesta(-1); }
+            }, 1000);
+        }
+
+        function verificarRespuesta(idx) {
+            clearInterval(timerInterval); window.speechSynthesis.cancel();
+            const p = niveles[nivelActual].p[preguntaActual];
+            if(idx === p.c) {
+                playSfx('acierto'); equipos[turnoEquipo].pts += 100;
+                document.getElementById('puntos-flow-gold').style.display = 'block'; setTimeout(()=>document.getElementById('puntos-flow-gold').style.display='none',2000);
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.7 } });
+            } else {
+                playSfx('error'); equipos[turnoEquipo].pts = Math.max(0, equipos[turnoEquipo].pts - 50);
+                document.getElementById('puntos-flow-error').style.display = 'block'; setTimeout(()=>document.getElementById('puntos-flow-error').style.display='none',2000);
+            }
+            setTimeout(() => {
+                preguntaActual++;
+                if(preguntaActual >= 10) {
+                    preguntaActual = 0; nivelActual++;
+                    if(nivelActual < niveles.length) { 
+                        document.getElementById('screen-juego').classList.remove('active'); 
+                        document.getElementById('screen-transicion').classList.add('active'); 
+                        document.getElementById('nombre-siguiente-nivel').innerText = niveles[nivelActual].nombre; 
+                        hablar("¡Nivel superado! Siguiente bloque: " + niveles[nivelActual].nombre);
+                    }
+                    else { mostrarRankingFinal(); }
+                } else { turnoEquipo = (turnoEquipo + 1) % numEquipos; actualizarMarcadores(); mostrarPregunta(); }
+            }, 2000);
+        }
+
+        function continuarSiguienteNivel() { 
+            document.getElementById('screen-transicion').classList.remove('active'); 
+            document.getElementById('screen-juego').classList.add('active'); 
+            turnoEquipo = (turnoEquipo + 1) % numEquipos; 
+            actualizarMarcadores(); 
+            mostrarPregunta(); 
+        }
+
+        function actualizarMarcadores() {
+            const cont = document.getElementById('contenedor-marcadores'); cont.innerHTML = '';
+            equipos.forEach((eq, i) => {
+                const div = document.createElement('div');
+                div.className = `marcador-eq ${i === turnoEquipo ? 'marcador-activo' : ''}`;
+                div.style.backgroundColor = eq.color;
+                div.innerHTML = `<div style="font-family:'Creepster'; font-size:1rem; letter-spacing:1px;">${eq.nombre}</div><div style="font-size:1.2rem; font-weight:900;">⭐ ${eq.pts}</div>`;
+                cont.appendChild(div);
+            });
+        }
+
+        function hablar(t) { 
+            window.speechSynthesis.cancel(); 
+            const u = new SpeechSynthesisUtterance(t); 
+            u.lang='es-ES'; u.rate = 0.95; 
+            window.speechSynthesis.speak(u); 
+        }
+        
+        function playSfx(type) {
+            const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
+            osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+            if (type === 'acierto') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, now); osc.frequency.setValueAtTime(659.25, now + 0.1); osc.frequency.setValueAtTime(783.99, now + 0.2);
+                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05); gainNode.gain.linearRampToValueAtTime(0, now + 0.4);
+                osc.start(now); osc.stop(now + 0.4);
+            } else if (type === 'error') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(250, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
+                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05); gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'magic') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(300, now); osc.frequency.linearRampToValueAtTime(900, now + 0.5);
+                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.2, now + 0.2); gainNode.gain.linearRampToValueAtTime(0, now + 0.5);
+                osc.start(now); osc.stop(now + 0.5);
+            }
+        }
+
+        function abrirCiberPolicia() { 
+            clearInterval(timerInterval); window.speechSynthesis.cancel(); 
+            document.getElementById('ciber-policia-container').style.display = 'none';
+            document.getElementById('modal-ciberpolicia').style.display = 'flex';
+            playSfx('magic');
+            
+            let premioObj = premiosCiberPolicia.pop();
+            if (premioObj.p === "intercambio") {
+                document.getElementById('ciberpolicia-texto').innerText = premioObj.msg;
+                document.getElementById('btn-cerrar-policia').style.display = 'none';
+                hablar(premioObj.msg); prepararIntercambioPolicia();
+            } else {
+                equipos[turnoEquipo].pts += premioObj.p;
+                document.getElementById('ciberpolicia-texto').innerText = premioObj.msg;
+                document.getElementById('btn-cerrar-policia').style.display = 'block';
+                document.getElementById('intercambio-equipos-policia').style.display = 'none';
+                actualizarMarcadores(); hablar(premioObj.msg);
+            }
+        }
+
+        function prepararIntercambioPolicia() {
+            const area = document.getElementById('intercambio-equipos-policia'); const lista = document.getElementById('lista-intercambio-policia');
+            area.style.display = 'block'; lista.innerHTML = '';
+            equipos.forEach((eq, i) => {
+                if(i !== turnoEquipo) {
+                    const btn = document.createElement('button'); btn.className = 'btn-accion'; btn.style.fontSize = '1rem'; btn.style.padding = '8px 15px';
+                    btn.innerText = `Con ${eq.nombre} (${eq.pts} pts)`; btn.onclick = () => ejecutarIntercambioPolicia(i, eq.nombre);
+                    lista.appendChild(btn);
+                }
+            });
+            if(numEquipos < 2) { 
+                document.getElementById('ciberpolicia-texto').innerText = "Modo individual activo. Sin intercambio."; 
+                area.style.display = 'none'; document.getElementById('btn-cerrar-policia').style.display = 'block';
+            }
+        }
+
+        function ejecutarIntercambioPolicia(idxTarget, nombreTarget) {
+            playSfx('magic'); let temp = equipos[turnoEquipo].pts; equipos[turnoEquipo].pts = equipos[idxTarget].pts; equipos[idxTarget].pts = temp;
+            document.getElementById('intercambio-equipos-policia').style.display = 'none';
+            let finalMsg = `Hechizo completado con ${nombreTarget}. ¡Seguimos investigando la historia de Halloween!`;
+            document.getElementById('ciberpolicia-texto').innerText = finalMsg; hablar(finalMsg);
+            actualizarMarcadores(); document.getElementById('btn-cerrar-policia').style.display = 'block';
+        }
+
+        function cerrarCiberPolicia() { document.getElementById('modal-ciberpolicia').style.display = 'none'; iniciarTimer(); }
+
+        function abrirModalRuleta() { 
+            clearInterval(timerInterval); window.speechSynthesis.cancel(); 
+            document.getElementById('btn-ruleta-container').style.display = 'none'; 
+            document.getElementById('modal-ruleta').style.display = 'flex'; 
+            document.getElementById('btn-tirar-ruleta').style.display = 'block'; 
+            document.getElementById('btn-cerrar-ruleta').style.display = 'none';
+            document.getElementById('intercambio-equipos-ruleta').style.display = 'none';
+            document.getElementById('ruleta-texto').innerText = "¡Gira la ruleta para conseguir pócimas o puntos mágicos!";
+            hablar("¡Gira la ruleta para conseguir pócimas o puntos mágicos!");
+        }
+
+        function girarRuleta() {
+            const giro = 3600 + Math.floor(Math.random()*360); 
+            document.getElementById('ruleta-fisica').style.transform = `rotate(${giro}deg)`;
+            document.getElementById('btn-tirar-ruleta').style.display = 'none';
+            document.getElementById('ruleta-texto').innerText = "¡Lanzando el hechizo...";
+            setTimeout(() => {
+                const premioObj = premiosRuleta[Math.floor(Math.random() * premiosRuleta.length)];
+                if (premioObj.p === "intercambio") {
+                    playSfx('magic'); document.getElementById('ruleta-texto').innerText = premioObj.msg;
+                    hablar(premioObj.msg); prepararIntercambioRuleta();
+                } else {
+                    if(premioObj.p > 0) playSfx('acierto'); else playSfx('error');
+                    equipos[turnoEquipo].pts += premioObj.p; if(equipos[turnoEquipo].pts < 0) equipos[turnoEquipo].pts = 0; 
+                    document.getElementById('ruleta-texto').innerText = premioObj.msg;
+                    actualizarMarcadores(); hablar(premioObj.msg);
+                    document.getElementById('btn-cerrar-ruleta').style.display = 'block';
+                }
+            }, 3000);
+        }
+
+        function prepararIntercambioRuleta() {
+            const area = document.getElementById('intercambio-equipos-ruleta'); const lista = document.getElementById('lista-intercambio-ruleta');
+            area.style.display = 'block'; lista.innerHTML = '';
+            equipos.forEach((eq, i) => {
+                if(i !== turnoEquipo) {
+                    const btn = document.createElement('button'); btn.className = 'btn-accion'; btn.style.fontSize = '1rem'; btn.style.padding = '8px 15px';
+                    btn.innerText = `Con ${eq.nombre} (${eq.pts} pts)`; btn.onclick = () => ejecutarIntercambioRuleta(i, eq.nombre);
+                    lista.appendChild(btn);
+                }
+            });
+            if(numEquipos < 2) { 
+                document.getElementById('ruleta-texto').innerText = "Modo individual activo. Sin intercambio."; 
+                area.style.display = 'none'; document.getElementById('btn-cerrar-ruleta').style.display = 'block';
+            }
+        }
+
+        function ejecutarIntercambioRuleta(idxTarget, nombreTarget) {
+            playSfx('magic'); let temp = equipos[turnoEquipo].pts; equipos[turnoEquipo].pts = equipos[idxTarget].pts; equipos[idxTarget].pts = temp;
+            document.getElementById('intercambio-equipos-ruleta').style.display = 'none';
+            let finalMsg = `Puntos intercambiados con ${nombreTarget}. ¡Trabajando en equipo en la noche de Halloween!`;
+            document.getElementById('ruleta-texto').innerText = finalMsg; hablar(finalMsg);
+            actualizarMarcadores(); document.getElementById('btn-cerrar-ruleta').style.display = 'block';
+        }
+
+        function cerrarRuleta() { document.getElementById('modal-ruleta').style.display = 'none'; iniciarTimer(); }
+
+        function mostrarRankingFinal() {
+            document.getElementById('screen-juego').classList.remove('active'); 
+            document.getElementById('screen-final').classList.add('active');
+            const cont = document.getElementById('contenedor-ranking'); cont.innerHTML = '';
+            const orden = [...equipos].sort((a,b) => b.pts - a.pts);
+            const medallas = ["🥇", "🥈", "🥉", "4º", "5º", "6º"];
+            orden.forEach((eq, i) => {
+                const fila = document.createElement('div');
+                fila.className = `rank-fila ${i===0?'rank-1':''}`; fila.style.borderLeftColor = eq.color;
+                fila.innerHTML = `<div>${medallas[i]} ${eq.nombre}</div><div>⭐ ${eq.pts} pts</div>`;
+                cont.appendChild(fila);
+            });
+            confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+            hablar("¡Misión cumplida! Felicidades por completar el gran cuestionario interactivo de Halloween.");
+        }
+
+        function mostrarDiploma() {
+            window.speechSynthesis.cancel();
+            document.getElementById('screen-final').classList.remove('active');
+            document.getElementById('screen-diploma').classList.add('active');
+            confetti({ particleCount: 300, spread: 120, origin: { y: 0.5 } });
+            hablar("¡Enhorabuena! Habéis demostrado conocer la verdadera historia de Samhain y Halloween, comprendiendo sus orígenes celtas y el significado de sus tradiciones.");
+        }
+    </script>
+</body>
+</html>

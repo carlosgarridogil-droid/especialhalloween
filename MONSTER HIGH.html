@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MONSTER HIGH - DESAFÍO MONSTRUOSAMENTE FABULOSO / PRIMARIA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-principal: #0d0114;
+            --bg-panel: #1a0529;
+            --rosa-monster: #ff007f;
+            --azul-skelita: #00e5ff;
+            --negro-gotico: #000000;
+            --morado-draculaura: #9d00ff;
+            --amarillo-electrico: #ffcc00;
+            --verde-zombie: #00ff66;
+            --texto-claro: #ffffff;
+            --eq1: #ff007f; --eq2: #00e5ff; --eq3: #9d00ff; --eq4: #ffcc00; --eq5: #00ff66; --eq6: #ff6600;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: radial-gradient(circle at center, #2e004f 0%, #120024 60%, #05000a 100%);
+            background-attachment: fixed;
+            color: var(--texto-claro);
+            margin: 0; padding: 0; overflow-x: hidden;
+            display: flex; flex-direction: column; min-height: 100vh; user-select: none;
+        }
+
+        .ventana-ciber {
+            border: 3px solid var(--rosa-monster);
+            background: rgba(26, 5, 41, 0.95);
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 0 25px rgba(255, 0, 127, 0.6), inset 0 0 15px rgba(0, 229, 255, 0.3);
+            max-width: 850px;
+            width: 90%;
+            margin: 20px auto;
+            position: relative;
+        }
+
+        .badge-lateral {
+            position: absolute;
+            padding: 8px 15px;
+            font-family: 'Creepster', cursive;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.9);
+            z-index: 10;
+            letter-spacing: 1px;
+        }
+        .badge-tutoria { background: var(--morado-draculaura); color: #fff; top: -15px; left: 15px; border: 1px solid var(--rosa-monster); }
+        .badge-primaria { background: var(--rosa-monster); color: #fff; top: -15px; right: 15px; font-weight: 900; }
+
+        .screen { display: none; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; padding: 20px; text-align: center; animation: fadeIn 0.5s ease-out; }
+        .screen.active { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+
+        h1.titulo-juego {
+            font-family: 'Creepster', cursive; font-size: clamp(2rem, 5.5vw, 3.5rem);
+            color: var(--rosa-monster); letter-spacing: 2px; line-height: 1.1;
+            text-shadow: 0 0 15px rgba(255, 0, 127, 0.8), 3px 3px 0 #000;
+            margin: 15px 0;
+        }
+
+        .selector-equipos { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 15px 0; }
+        .btn-jug {
+            width: 55px; height: 55px; border-radius: 12px; border: 2px solid var(--rosa-monster);
+            font-size: 1.5rem; font-family: 'Creepster', cursive; cursor: pointer; background: var(--bg-panel); color: white;
+            transition: 0.2s;
+        }
+        .btn-jug.seleccionado { background: var(--rosa-monster); color: #fff; font-weight: 900; transform: scale(1.1); box-shadow: 0 0 15px var(--rosa-monster); }
+
+        .game-header {
+            display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 5px;
+            font-family: 'Creepster', cursive; font-size: 1.2rem; letter-spacing: 1px;
+        }
+        .nivel-text { color: var(--rosa-monster); }
+        .pregunta-text { color: #aaa; font-family: 'Nunito', sans-serif; font-size: 0.9rem; }
+
+        .progress-container { width: 100%; height: 8px; background: #000; border-radius: 4px; margin-top: 5px; overflow: hidden; border: 1px solid var(--rosa-monster); }
+        .progress-bar { height: 100%; background: var(--rosa-monster); width: 0%; transition: width 0.3s; box-shadow: 0 0 8px var(--rosa-monster); }
+        .dots-container { display: flex; justify-content: space-between; margin: 12px 0; padding: 0 5px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: #333; transition: 0.3s; }
+        .dot.active { background: var(--amarillo-electrico); box-shadow: 0 0 10px var(--amarillo-electrico); transform: scale(1.3); }
+        .dot.passed { background: var(--azul-skelita); }
+
+        .timer-container {
+            width: 100%; background: #000; height: 20px; border-radius: 10px; margin-bottom: 10px; overflow: hidden; border: 2px solid var(--rosa-monster); position: relative;
+        }
+        #timer-bar { height: 100%; background: linear-gradient(90deg, var(--azul-skelita), var(--amarillo-electrico), var(--rosa-monster)); transition: width 1s linear; }
+
+        #icono-nivel-container { font-size: 3.5rem; margin: 10px 0; min-height: 70px; display: flex; align-items: center; justify-content: center; gap: 15px; }
+        .emoji-grande { animation: pulse 2s infinite; display: inline-block; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+        .btn-accion {
+            padding: 12px 35px; font-size: 1.4rem; font-family: 'Creepster', cursive; letter-spacing: 1px; border-radius: 30px;
+            border: 2px solid var(--rosa-monster); background: var(--morado-draculaura); color: white; cursor: pointer;
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.5); transition: all 0.2s; margin-top: 15px; text-transform: uppercase;
+        }
+        .btn-accion:hover { background: var(--rosa-monster); color: #fff; box-shadow: 0 0 20px var(--rosa-monster); }
+
+        .btn-audio {
+            background: rgba(255, 0, 127, 0.2); border: 2px solid var(--rosa-monster); color: white;
+            padding: 8px 18px; border-radius: 20px; cursor: pointer; font-family: 'Creepster', cursive;
+            font-size: 1.1rem; margin-bottom: 15px; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; letter-spacing: 1px;
+        }
+        .btn-audio:hover { background: var(--rosa-monster); color: #fff; }
+
+        .caja-explicativa {
+            font-size: 1.25rem; line-height: 1.6; text-align: left; padding: 22px;
+            background: rgba(0,0,0,0.75); border-radius: 15px; margin-bottom: 20px;
+            border: 1px solid var(--rosa-monster); box-shadow: inset 0 0 10px rgba(0,0,0,0.9);
+        }
+        .caja-explicativa ul { margin: 10px 0 0 0; padding-left: 25px; }
+        .caja-explicativa li { margin-bottom: 10px; }
+
+        .btn-evento-flotante { position: absolute; top: -25px; width: 60px; height: 60px; cursor: pointer; z-index: 10; border: none; background: transparent; }
+        #ciber-policia-container { left: 15px; font-size: 3.8rem; filter: drop-shadow(0 0 10px var(--rosa-monster)); }
+        #btn-ruleta-container { right: 15px; font-size: 3.5rem; filter: drop-shadow(0 0 10px var(--azul-skelita)); }
+
+        .panel-pregunta { background: var(--bg-panel); color: white; width: 95%; max-width: 800px; border-radius: 20px; padding: 25px; border: 2px solid var(--rosa-monster); position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.9); }
+        #contenedor-opciones { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .btn-opcion { background: #0d0114; border: 1px solid #3d005e; padding: 15px; font-size: 1rem; color: white; font-weight: 700; border-radius: 10px; cursor: pointer; text-align: left; transition: 0.2s; }
+        .btn-opcion:hover { border-color: var(--rosa-monster); background: #26003b; }
+        .btn-opcion.correcta { background: var(--azul-skelita) !important; color: #000; font-weight: 900; }
+        .btn-opcion.incorrecta { background: var(--rosa-monster) !important; color: white; }
+
+        #contenedor-marcadores { display: flex; gap: 10px; width: 100%; justify-content: center; flex-wrap: wrap; margin-bottom: 15px; }
+        .marcador-eq { width: 110px; padding: 8px; border-radius: 10px; background: #1a0529; opacity: 0.6; border: 2px solid transparent; }
+        .marcador-eq.marcador-activo { opacity: 1; transform: scale(1.05); border-color: var(--rosa-monster); box-shadow: 0 0 10px var(--rosa-monster); }
+
+        .ruleta-wrapper { position: relative; width: 220px; height: 220px; margin: 15px auto; border-radius: 50%; border: 6px solid var(--rosa-monster); overflow: hidden; }
+        .ruleta-bg { width: 100%; height: 100%; background: conic-gradient(#ff007f 0% 20%, #00e5ff 20% 40%, #9d00ff 40% 60%, #ffcc00 60% 80%, #00ff66 80% 100%); transition: transform 3s cubic-bezier(0.1, 0.8, 0.1, 1); }
+        .ruleta-pointer { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 20px solid var(--amarillo-electrico); z-index: 5; }
+        
+        .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.92); z-index:10000; align-items:center; justify-content:center; }
+        .modal-content { background: var(--bg-panel); color: white; padding: 25px; border-radius: 20px; text-align: center; max-width: 420px; width: 90%; border: 2px solid var(--rosa-monster); box-shadow: 0 0 25px var(--rosa-monster); }
+
+        .puntos-flow { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Creepster', cursive; font-size: 4rem; z-index: 9999; pointer-events: none; animation: puntosFlowUp 2s ease-out forwards; display: none; }
+        #puntos-flow-gold { color: var(--amarillo-electrico); text-shadow: 0 0 20px var(--amarillo-electrico); }
+        #puntos-flow-error { color: var(--rosa-monster); text-shadow: 0 0 20px var(--rosa-monster); }
+        @keyframes puntosFlowUp { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } 20% { opacity: 1; transform: translate(-50%, -60%) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -200px) scale(0.8); } }
+        
+        .rank-fila { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; margin: 8px 0; border-radius: 10px; background: rgba(255,255,255,0.05); border-left: 8px solid transparent; font-family: 'Creepster', cursive; font-size: 1.4rem; letter-spacing: 1px; }
+        .rank-1 { background: rgba(255, 0, 127, 0.3); border: 1px solid var(--rosa-monster); transform: scale(1.03); }
+
+        .diploma-container { background: #000; color: white; border: 4px solid var(--rosa-monster); padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 0 40px rgba(255, 0, 127, 0.6); max-width: 800px; }
+
+        .autor-credito {
+            margin-top: 15px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--azul-skelita);
+            text-shadow: 0 0 5px rgba(0, 229, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- EFECTOS DE PUNTOS -->
+    <div id="puntos-flow-gold" class="puntos-flow">+100</div>
+    <div id="puntos-flow-error" class="puntos-flow">-50</div>
+
+    <!-- PANTALLA INICIAL -->
+    <div id="screen-inicio" class="screen active">
+        <div class="ventana-ciber">
+            <div class="badge-lateral badge-tutoria">INSTITUTO MONSTER HIGH</div>
+            <div class="badge-lateral badge-primaria">EDUCACIÓN PRIMARIA</div>
+            <h1 class="titulo-juego">BIENVENIDOS A MONSTER HIGH 🎀⚡</h1>
+            <p style="font-weight: 700; color: var(--rosa-monster); margin: 5px 0;">Junta de Andalucía - Cuestionario Interactivo sobre la Historia, Personajes y Valores de Monster High</p>
+            
+            <div style="font-size: 4.5rem; margin: 20px 0; display: flex; justify-content: center; gap: 20px;">
+                <span class="emoji-grande">🎀</span>
+                <span class="emoji-grande" style="animation-delay: 0.3s;">🦇</span>
+                <span class="emoji-grande" style="animation-delay: 0.6s;">⚡</span>
+            </div>
+            
+            <p style="font-size: 1.1rem; font-weight: 700;">Selecciona número de equipos:</p>
+            <div class="selector-equipos">
+                <button class="btn-jug" onclick="seleccionarJugadores(1)">1</button>
+                <button class="btn-jug" onclick="seleccionarJugadores(2)">2</button>
+                <button class="btn-jug seleccionado" onclick="seleccionarJugadores(3)">3</button>
+                <button class="btn-jug" onclick="seleccionarJugadores(4)">4</button>
+                <button class="btn-jug" onclick="seleccionarJugadores(5)">5</button>
+                <button class="btn-jug" onclick="seleccionarJugadores(6)">6</button>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.6); padding: 12px; border-radius: 10px; margin: 15px 0; border: 1px solid var(--rosa-monster);">
+                <label style="cursor: pointer; font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <input type="checkbox" id="check-tiempo" checked style="transform: scale(1.4);"> Temporizador Electrizante (30 seg por reto)
+                </label>
+            </div>
+
+            <button class="btn-accion" onclick="irACiberconvivencia()">¡ENTRAR EN LAS AULAS!</button>
+            <div class="autor-credito">Aplicación elaborada por el maestro Carlos Garrido</div>
+        </div>
+    </div>
+
+    <!-- PANTALLA EXPLICATIVA 1: CREADOR Y CONCEPTO -->
+    <div id="screen-ciberconvivencia" class="screen">
+        <div class="ventana-ciber">
+            <h1 style="color: var(--rosa-monster);">¿CÓMO NACIÓ MONSTER HIGH? 👗🦇</h1>
+            <button class="btn-audio" onclick="leerCiberconvivencia()">🔊 Escuchar Explicación</button>
+            
+            <div class="caja-explicativa">
+                <p style="margin-top:0;"><strong>Monster High</strong> fue creada en 2010 por la diseñadora <strong>Garrett Sander</strong> para la compañía Mattel.</p>
+                <p>Curiosidades de su origen y universo:</p>
+                <ul>
+                    <li><strong>Hijos de monstruos icónicos:</strong> Las protagonistas son las hijas e hijos de los monstruos más famosos de la literatura clásica y el cine, como Frankenstein, Drácula o el Hombre Lobo.</li>
+                    <li><strong>Estilo único y moda:</strong> Combina la moda gótica y moderna con detalles divertidos inspirados en las leyendas de cada personaje.</li>
+                    <li><strong>Éxito mundial:</strong> Ha inspirado series de televisión, películas animadas, libros y musicales en todo el mundo.</li>
+                </ul>
+            </div>
+            
+            <button class="btn-accion" onclick="irANetiqueta()">SIGUIENTE: VALORES Y CONVIVENCIA ➔</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA EXPLICATIVA 2: LEMA Y VALORES -->
+    <div id="screen-netiqueta" class="screen">
+        <div class="ventana-ciber">
+            <h1 style="color: var(--azul-skelita);">SÉ TÚ MISMO, SÉ ÚNICO, SÉ UN MONSTRUO 💖⚡</h1>
+            <button class="btn-audio" onclick="leerNetiqueta()">🔊 Escuchar Explicación</button>
+
+            <div class="caja-explicativa">
+                <p style="margin-top:0;">El gran lema de Monster High es <em>"Sé tú mismo, sé único, sé un monstruo"</em>, enseñándonos grandes valores para la vida en el colegio:</p>
+                <p>Grandes lecciones del instituto Monster High:</p>
+                <ul>
+                    <li><strong>Aceptar tus imperfecciones:</strong> Todos los monstruos tienen "defectos fabulosos" que los hacen especiales y únicos.</li>
+                    <li><strong>Diversidad e Inclusión:</strong> Vampiros, hombres lobo y momias aprenden a convivir en paz respetando sus diferentes tradiciones.</li>
+                    <li><strong>Amistad incondicional:</strong> Frankie, Draculaura, Clawdeen y sus amigas siempre se apoyan para superar cualquier problema.</li>
+                </ul>
+            </div>
+
+            <button class="btn-accion" onclick="irAHistoria()">¡IR A LA HISTORIA DE LA MISIÓN!</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA HISTORIA E INTRODUCCIÓN -->
+    <div id="screen-historia" class="screen">
+        <div class="ventana-ciber">
+            <h1 style="color: var(--amarillo-electrico);">¡BIENVENIDOS AL INSTITUTO MONSTER HIGH! 🏰</h1>
+            <div class="caja-explicativa">
+                <p>¡Atención, alumnos de Primaria! La Directora Decapitada y las Monstruo-amigas nos abren las puertas del instituto para poner a prueba nuestro conocimiento e ingenio.</p>
+                <p>A través de estos 40 retos divididos en 4 bloques exploraremos la <strong>creación del universo</strong>, los <strong>personajes inolvidables</strong>, la <strong>moda y accesorios</strong> y las <strong>lecciones de inclusión y amistad</strong>.</p>
+                <p>Recordad: ¡El mejor equipo no es solo el que saca más puntos, sino el que colabora con respeto, alegría y auténtico espíritu de equipo!</p>
+            </div>
+            <button class="btn-accion" onclick="empezarJuego()">¡ABRIR LAS PUERTAS DEL INSTITUTO!</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE JUEGO -->
+    <div id="screen-juego" class="screen">
+        <div id="contenedor-marcadores"></div>
+        <div class="panel-pregunta">
+            <button id="ciber-policia-container" class="btn-evento-flotante" onclick="abrirCiberPolicia()">🎀</button>
+            <button id="btn-ruleta-container" class="btn-evento-flotante" onclick="abrirModalRuleta()">🎡</button>
+            
+            <div class="game-header">
+                <span id="ind-nivel" class="nivel-text">BLOQUE 1</span>
+                <span id="cont-pregunta" class="pregunta-text">RETO 1 de 10</span>
+            </div>
+            
+            <div class="progress-container"><div id="progress-bar" class="progress-bar"></div></div>
+            <div id="dots-container" class="dots-container">
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            </div>
+
+            <div class="timer-container" id="timer-container-box"><div id="timer-bar"></div></div>
+            <div id="icono-nivel-container"></div>
+            <div id="texto-pregunta" style="font-size: 1.4rem; font-weight: 800; margin: 10px 0;"></div>
+            <div id="contenedor-opciones"></div>
+        </div>
+    </div>
+
+    <!-- PANTALLA TRANSICIÓN ENTRE BLOQUES -->
+    <div id="screen-transicion" class="screen">
+        <div class="ventana-ciber">
+            <div style="font-size: 4rem;">⚡ 🎀 ⚡</div>
+            <h1 style="color: var(--azul-skelita);">¡BLOQUE MONSTRUOSO COMPLETADO!</h1>
+            <p style="font-size: 1.3rem;">Siguiente aula del instituto:</p>
+            <h2 id="nombre-siguiente-nivel" style="color: var(--rosa-monster); font-family: 'Creepster'; font-size: 2rem;"></h2>
+            <div style="font-size: 2.5rem; margin: 15px;">🏰 🦇 💖</div>
+            <button class="btn-accion" onclick="continuarSiguienteNivel()">¡ENTRAR EN LA SIGUIENTE CLASE!</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA FINAL - RANKING -->
+    <div id="screen-final" class="screen">
+        <div class="ventana-ciber">
+            <h1 class="titulo-juego">CLASIFICACIÓN DE MONSTER HIGH</h1>
+            <div style="font-size: 3.5rem; margin-bottom: 15px;">🏆🎀</div>
+            <div id="contenedor-ranking" style="width: 100%; text-align: left;"></div>
+            <button class="btn-accion" style="margin-top:25px; background: var(--amarillo-electrico); color: #000;" onclick="mostrarDiploma()">OBTENER ORGULLO MONSTRUOSO 📜</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA DIPLOMA / CERTIFICADO -->
+    <div id="screen-diploma" class="screen">
+        <div class="diploma-container">
+            <div style="font-size: 5rem; margin-bottom: 10px;">🏅🎀🦇</div>
+            <h1 style="color: var(--rosa-monster); font-family: 'Creepster'; font-size: 2.8rem; margin: 10px 0;">DIPLOMA DE ALUMNO FABULOSO</h1>
+            <h2 style="color: var(--azul-skelita); font-size: 1.8rem; margin: 10px 0;">EDUCACIÓN PRIMARIA - INSTITUTO MONSTER HIGH</h2>
+            <p style="font-size: 1.3rem; line-height: 1.6; padding: 15px; border-radius: 12px; background: rgba(255,255,255,0.05); margin: 20px; border: 1px solid var(--rosa-monster);">
+                Habéis demostrado conocer a la perfección la historia de <strong style="color: var(--rosa-monster);">Monster High</strong>, comprendiendo el valor de ser únicos, aceptar las imperfecciones y celebrar la amistad sincera.<br><br>
+                ¡Enhorabuena, el instituto Monster High se siente orgulloso de vuestro aprendizaje!
+            </p>
+            <button class="btn-accion" onclick="location.reload()">REINICIAR DESAFÍO</button>
+        </div>
+    </div>
+
+    <!-- MODAL DIRECTORA DECAPITADA / TUTOR -->
+    <div id="modal-ciberpolicia" class="modal-overlay">
+        <div class="modal-content">
+            <h2 style="color: var(--rosa-monster); font-family: 'Creepster'; font-size: 2rem;">🎀 CONSEJO DE LA DIRECTORA 🎀</h2>
+            <p id="ciberpolicia-texto" style="font-size:1.4rem; font-weight: 700;"></p>
+            
+            <div id="intercambio-equipos-policia" style="display:none; margin-bottom: 15px;">
+                <p style="font-weight:bold;">Elige el equipo para realizar el intercambio de pócimas o estilismos:</p>
+                <div id="lista-intercambio-policia" style="display:flex; flex-direction:column; gap:5px;"></div>
+            </div>
+
+            <button id="btn-cerrar-policia" class="btn-accion" onclick="cerrarCiberPolicia()" style="margin: 0 auto; display: block;">¡ENTENDIDO!</button>
+        </div>
+    </div>
+    
+    <!-- MODAL RULETA MÁGICA -->
+    <div id="modal-ruleta" class="modal-overlay">
+        <div class="modal-content">
+            <h2 style="color: var(--amarillo-electrico); font-family: 'Creepster'; font-size: 2rem;">🎡 RULETA MONSTRUOSAMENTE FABULOSA 🎡</h2>
+            <div class="ruleta-wrapper"><div class="ruleta-pointer"></div><div id="ruleta-fisica" class="ruleta-bg"></div></div>
+            <p id="ruleta-texto" style="font-size:1.3rem; font-weight: 700; min-height: 50px;"></p>
+            
+            <div id="intercambio-equipos-ruleta" style="display:none; margin-bottom: 15px;">
+                <p style="font-weight:bold;">Elige el equipo para realizar el hechizo de intercambio:</p>
+                <div id="lista-intercambio-ruleta" style="display:flex; flex-direction:column; gap:5px;"></div>
+            </div>
+
+            <button id="btn-tirar-ruleta" class="btn-accion" onclick="girarRuleta()" style="margin: 0 auto; display: block;">¡GIRAR RULETA!</button>
+            <button id="btn-cerrar-ruleta" class="btn-accion" onclick="cerrarRuleta()" style="display:none; margin: 0 auto;">¡ACEPTAR!</button>
+        </div>
+    </div>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let numEquipos = 3, equipos = [], nivelActual = 0, preguntaActual = 0, turnoEquipo = 0;
+        let timerInterval, timeLeft;
+        let eventosDelNivel = [];
+
+        // EVENTOS DEL CONSEJO DE LA DIRECTORA
+        let premiosCiberPolicia = [
+            { p: 100, msg: "¡Ayudaste a Frankie a ajustar sus tornillos con una llave inglesa! +100 pts" },
+            { p: 200, msg: "¡Le diseñaste un lazo rosa de murciélago a Draculaura! +200 pts" },
+            { p: 300, msg: "¡Explicaste en clase el lema 'Sé tú mismo, sé único, sé un monstruo'! +300 pts" },
+            { p: 400, msg: "¡Acompañaste a Clawdeen a peinar su melena de lobo! +400 pts" },
+            { p: 500, msg: "¡Respetaste las costumbres acuáticas de Lagoona Blue! +500 pts" },
+            { p: 600, msg: "¡Ordenaste las taquillas del pasillo principal del instituto! +600 pts" },
+            { p: 700, msg: "¡Escribiste un poema sobre la inclusión en la clase de Lengua! +700 pts" },
+            { p: 800, msg: "¡Invitaste a un monstruo nuevo a sentarse en tu mesa en el comedor! +800 pts" },
+            { p: 900, msg: "¡Aprendiste el origen literario de todos los personajes! +900 pts" },
+            { p: 1000, msg: "¡Eres un auténtico Guardián del Respeto y la Inclusión! +1000 pts" },
+            { p: "intercambio", msg: "¡Hechizo de Moda! Intercambia puntos con otro equipo." },
+            { p: "intercambio", msg: "¡Hechizo de Moda! Intercambia puntos con otro equipo." },
+            { p: "intercambio", msg: "¡Hechizo de Moda! Intercambia puntos con otro equipo." }
+        ];
+
+        // BANCO DE PREGUNTAS (4 BLOQUES TEMÁTICOS SOBRE MONSTER HIGH)
+        const niveles = [
+            { nombre: "BLOQUE 1: ORIGEN Y CONCEPCIÓN DE LA SERIE", p: [
+                { q: "¿En qué año fue lanzada oficialmente la franquicia Monster High por la compañía Mattel?", a: ["En 2010.", "En 2000.", "En 2018.", "En 1995."], c: 0 },
+                { q: "¿Quién fue el diseñador estadounidense creador original de las muñecas Monster High?", a: ["Garrett Sander.", "Ruth Handler.", "Walt Disney.", "Stan Lee."], c: 0 },
+                { q: "¿Cuál es el famoso lema oficial de Monster High que inspira a todos los estudiantes?", a: ["'Sé tú mismo, sé único, sé un monstruo' (Be yourself, be unique, be a monster).", "'Sé el más rápido y gana siempre'.", "'La moda es solo para los más populares'.", "'Los monstruos no deben hablar con nadie'."], c: 0 },
+                { q: "La idea de Monster High se basa en crear los hijos adolescentes de...", a: ["Los monstruos y criaturas legendarias de la literatura y el cine clásico.", "Los astronautas que van a la Luna.", "Los reyes y reinas de la Edad Media.", "Los superhéroes del espacio."], c: 0 },
+                { q: "¿Cómo se llama la Directora del instituto Monster High que siempre va sobre un caballo?", a: ["Directora Decapitada (Headless Headmistress Bloodgood).", "Profesora Gárgola.", "Señora Medusa.", "Maestra Vampira."], c: 0 },
+                { q: "¿Cómo se llama la mascota de la Directora Decapitada?", a: ["Un caballo llamado Pesadilla (Nightmare).", "Un gato negro llamado Salem.", "Un búho blanco.", "Un perro de tres cabezas."], c: 0 },
+                { q: "¿Qué tipo de logotipo icónico identifica a la marca Monster High?", a: ["Una calavera con un lazo rosa de moño (Skullette).", "Una estrella de fuego azul.", "Un murciélago verde gigante.", "Un castillo de piedra negra."], c: 0 },
+                { q: "¿En qué formato comenzaron a transmitirse las historias animadas de Monster High?", a: ["Webepisodios cortos en internet y especiales de TV.", "Peliculas de actores reales en cine.", "Libros de texto escolares.", "Programas de radio nocturnos."], c: 0 },
+                { q: "El gran valor pedagógico de estudiar la historia de Monster High consiste en...", a: ["Aprender a valorar la diversidad, la inclusión y la autoaceptación.", "Comprar accesorios de moda sin pensar.", "Asustar a la gente en el patio.", "No querer hacer los deberes de clase."], c: 0 },
+                { q: "A pesar de ser monstruos de leyendas temibles, la principal cualidad de los personajes es...", a: ["Tener un gran corazón, ser buenos compañeros y apoyarse en la escuela.", "Estar enfadados entre ellos todo el día.", "No hablar con monstruos de otras especies.", "Competir agresivamente por las notas."], c: 0 }
+            ]},
+            { nombre: "BLOQUE 2: PERSONAJES MONSTRUOSAMENTE FABULOSOS", p: [
+                { q: "¿Cómo se llama la hija del Monstruo de Frankenstein que está hecha de partes ensambladas?", a: ["Frankie Stein.", "Draculaura.", "Clawdeen Wolf.", "Lagoona Blue."], c: 0 },
+                { q: "¿Qué peculiaridad alimenticia tiene Draculaura, la hija del Conde Drácula?", a: ["Es vegana y le da reparo ver sangre o carne.", "Solo come hamburguesas con queso.", "Come pescado crudo de mar.", "Le encantan las galletas de chocolate."], c: 0 },
+                { q: "¿Cómo se llama la fashionista hija del Hombre Lobo a la que le apasiona el diseño de moda?", a: ["Clawdeen Wolf.", "Cleo de Nile.", "Ghoulia Yelps.", "Abbey Bominable."], c: 0 },
+                { q: "¿De qué monstruo clásico es hija Lagoona Blue, la estudiante australiana dulce y deportista?", a: ["Del Monstruo de la Laguna Negra (Criatura del Lago).", "Del Hombre Invisible.", "De la Llorona.", "Del Fantasma de la Ópera."], c: 0 },
+                { q: "¿Quién es la reina del instituto, hija de la Momia, que suele ser algo mandona pero de buen corazón?", a: ["Cleo de Nile.", "Frankie Stein.", "Spectra Vondergeist.", "Robecca Steam."], c: 0 },
+                { q: "¿Cómo se llama la chica zombi súper inteligente que se comunica mediante gemidos zombis?", a: ["Ghoulia Yelps.", "Toralei Stripe.", "Scarah Screams.", "Iris Clops."], c: 0 },
+                { q: "¿Qué chica es la hija del Abominable Hombre de las Nieves y viene de las montañas heladas?", a: ["Abbey Bominable.", "Draculaura.", "Cleo de Nile.", "Jinafire Long."], c: 0 },
+                { q: "¿Cómo se llama el novio de Cleo de Nile que es hijo de Medusa y convierte a la gente en piedra si se quita las gafas?", a: ["Deuce Gorgon.", "Clawd Wolf.", "Jackson Jekyll.", "Holt Hyde."], c: 0 },
+                { q: "¿Qué personaje es un chico humano que cuando escucha música cañera se transforma en su alter ego verde?", a: ["Jackson Jekyll / Holt Hyde.", "Deuce Gorgon.", "Gil Webber.", "Invisi Billy."], c: 0 },
+                { q: "La amistad entre Frankie, Draculaura y Clawdeen demuestra que...", a: ["Las personas con orígenes y estilos totalmente diferentes pueden ser las mejores amigas.", "Solo se puede ser amigo de la gente de tu misma familia.", "Hay que discutir cuando no pensamos igual.", "Las mejores amigas nunca hablan de sus problemas."], c: 0 }
+            ]},
+            { nombre: "BLOQUE 3: ESTILO, ACCESORIOS Y MASCOTAS", p: [
+                { q: "¿Cómo se llama la murciélago mascota de Draculaura que viste con ropa mona?", a: ["Count Fabulous (Conde Fabuloso).", "Crescent.", "Watzit.", "Sir Hoots a Lot."], c: 0 },
+                { q: "¿Qué tipo de criatura es Watzit, el fiel perro mascota de Frankie Stein formado por partes de animales?", a: ["Un perro formado por varias partes de mascotas de costura.", "Un gato negro volador.", "Un dragón pequeño de fuego.", "Un búho de nieve."], c: 0 },
+                { q: "¿Qué mascota tiene Clawdeen Wolf que es un adorable gatito morado?", a: ["Crescent.", "Neptuna.", "Hissette.", "Crossfade."], c: 0 },
+                { q: "¿Cómo se llama la piraña rosa que Lagoona Blue lleva en una pecera como bolso?", a: ["Neptuna.", "Hissette.", "Rhuen.", "Memphis."], c: 0 },
+                { q: "¿Qué mascota serpiente tiene Cleo de Nile adornada con joyas de oro?", a: ["Hissette.", "Count Fabulous.", "Watzit.", "Azura."], c: 0 },
+                { q: "¿Qué accesorio característico lleva siempre Deuce Gorgon para evitar petrificar a sus amigos con la mirada?", a: ["Gafas de sol oscuras.", "Un sombrero de copa.", "Una máscara de hierro.", "Un pañuelo en los ojos."], c: 0 },
+                { q: "El estilo de moda de Frankie Stein se caracteriza por incorporar...", a: ["Estampados de cuadros escoceses, tuercas, tornillos y rayos eléctricos.", "Vestidos de seda china dorada.", "Ropa deportiva con escamas de pez.", "Vendas de lino egipcio antiguas."], c: 0 },
+                { q: "La estética de Draculaura destaca por combinar principalmente los colores...", a: ["Rosa chicle y negro gótico con sombrillas para el sol.", "Verde brillante y amarillo fosforescente.", "Blanco nieve y azul hielo.", "Naranja y marrón de otoño."], c: 0 },
+                { q: "¿Qué curioso detalle ocurre cuando Frankie Stein se emociona o se pone nerviosa?", a: ["Se le saltan las chispas o se le desprenden sus manos mecánicas.", "Se vuelve invisible al instante.", "Empieza a congelar las cosas que toca.", "Le crecen garras en las manos."], c: 0 },
+                { q: "El uso de la moda y los accesorios en Monster High simboliza...", a: ["Una forma divertida de expresar nuestra personalidad e identidad sin miedo a ser juzgados.", "Una obligación para ser aceptado.", "Algo que hay que copiar de los demás.", "Una pérdida de tiempo."], c: 0 }
+            ]},
+            { nombre: "BLOQUE 4: VALORES, INCLUSIÓN Y EMPATÍA", p: [
+                { q: "Cuando un personaje de Monster High habla de sus 'defectos fabulosos', se refiere a...", a: ["Esas imperfecciones o diferencias que nos hacen ser personas únicas y especiales.", "Cosas malas que hay que esconder.", "Errores que cometen en los exámenes.", "Castigos de los profesores."], c: 0 },
+                { q: "La lección de inclusión de Monster High ante los alumnos nuevos en el colegio es...", a: ["Darles la bienvenida con amabilidad, escuchar sus tradiciones e integrarlos en el grupo.", "Decirles que se sientan solos.", "Reírnos de sus trajes o peinados.", "Obligarles a cambiar de forma de ser."], c: 0 },
+                { q: "En la película '13 Deseos' o 'Ghouls Rule', la enseñanza principal es que...", a: ["Tratar de encajar a la fuerza cambiando quién eres solo trae problemas.", "Hay que desear tener más dinero que nadie.", "Es mejor mandar sobre todo el mundo.", "Las trampas ayudan a ganar siempre."], c: 0 },
+                { q: "Si en el recreo vemos que un compañero sufre rechazo por ser diferente, la actitud justa es...", a: ["Defenderlo, ofrecerle nuestra amistad y avisar a los maestros si hay acoso.", "Unirnos a la burla para no ser excluidos.", "Mirar para otro lado sin hacer nada.", "Decir que es culpa suya."], c: 0 },
+                { q: "La relación entre vampiresas, hombres lobo y momias en el instituto enseña a...", a: ["Superar los prejuicios del pasado y construir una convivencia en paz y respeto.", "Mantener las enemistades de las familias antiguas.", "Competir por ver qué especie es mejor.", "No hablar con otras culturas."], c: 0 },
+                { q: "Al trabajar en equipo para resolver estos retos en clase, lo más importante es...", a: ["Aceptar las aportaciones de todos con respeto y celebrar la victoria en equipo.", "Gritar la respuesta para imponer nuestra opinión.", "Dejar que solo trabaje un compañero.", "Rendirse si fallamos una pregunta."], c: 0 },
+                { q: "La inteligencia y la dedicación al estudio del personaje Ghoulia Yelps nos demuestra que...", a: ["El esfuerzo, la lectura y la ciencia son cualidades super valiosas y admirables.", "Ser inteligente es algo aburrido.", "No hace falta estudiar para aprender.", "Solo importa el aspecto físico."], c: 0 },
+                { q: "Cuando ayudamos a un amigo que se siente inseguro como hace Clawdeen con sus amigas...", a: ["Fortalecemos su autoestima y construimos una amistad sincera y duradera.", "Nos reímos de sus dudas.", "Le decimos que no sirves para nada.", "Le exigimos que nos haga los deberes."], c: 0 },
+                { q: "¿Qué valor ético ejercitamos al celebrar las diferencias de cada estudiante?", a: ["Empatía, tolerancia, diversidad e inclusión social.", "Envidia y rivalidad.", "Indiferencia por los sentimientos ajenos.", "Intolerancia ante las modas."], c: 0 },
+                { q: "En definitiva, el mensaje de Monster High para nuestro grupo de Educación Primaria es...", a: ["Orgullecernos de quiénes somos, respetar a todos los demás y construir un colegio genial.", "Ser todos exactamente iguales sin opinión propia.", "Tener miedo a equivocarse.", "No jugar con niños de otras clases."], c: 0 }
+            ]}
+        ];
+
+        // PREMIOS DE LA RULETA MONSTRUOSAMENTE FABULOSA
+        const premiosRuleta = [
+            { p: 50, msg: "¡Count Fabulous te trajo un lazo de regalo! +50 pts." },
+            { p: 100, msg: "¡Watzit te dio un abrazo de mascota fabulosa! +100 pts." },
+            { p: 150, msg: "¡Clawdeen te diseñó un accesorio de moda único! +150 pts." },
+            { p: 200, msg: "¡Escribiste un poema sobre la autoaceptación en clase! +200 pts." },
+            { p: 250, msg: "¡Draculaura te invitó a un batido vegano de fresa! +250 pts." },
+            { p: 300, msg: "¡Ghoulia Yelps te enseñó un truco de ciencia zombi! +300 pts." },
+            { p: 350, msg: "¡Frankie cargó tu energía con un chispazo electrizante! +350 pts." },
+            { p: 400, msg: "¡Ganaste el torneo de natación con Lagoona Blue! +400 pts." },
+            { p: 450, msg: "¡Descifraste un jeroglífico antiguo con Cleo de Nile! +450 pts." },
+            { p: 500, msg: "¡Abbey Bominable congeló tus errores del examen! +500 pts." },
+            { p: 600, msg: "¡Gran fiesta de baile en la cafetería de Monster High! +600 pts." },
+            { p: 700, msg: "¡Pócima del Orgullo Monstruoso concedida! +700 pts." },
+            { p: 800, msg: "¡Demostración de inclusión y amistad en el instituto! +800 pts." },
+            { p: 1000, msg: "¡SUPER HECHIZO DEL ESTUDIANTE FABULOSO! +1000 pts." },
+            { p: -50, msg: "A Frankie se le soltó un tornillo de la emoción: -50 pts." },
+            { p: -100, msg: "A Deuce Gorgon se le cayeron las gafas de sol: -100 pts." },
+            { p: -150, msg: "Toralei Stripe te gastó una travesura de gato: -150 pts." },
+            { p: -200, msg: "Te tropezaste con la cadena de la taquilla del pasillo: -200 pts." },
+            { p: "intercambio", msg: "¡Estrategia Fabulosa! Intercambio de puntos. Elige con quién." },
+            { p: "intercambio", msg: "¡Estrategia Fabulosa! Intercambio de puntos. Elige con quién." }
+        ];
+
+        function seleccionarJugadores(n) { 
+            numEquipos = n; 
+            document.querySelectorAll('.btn-jug').forEach((b, i) => b.classList.toggle('seleccionado', (i+1)===n)); 
+        }
+
+        // NAVEGACIÓN INICIAL DE PANTALLAS
+        function irACiberconvivencia() {
+            document.getElementById('screen-inicio').classList.remove('active');
+            document.getElementById('screen-ciberconvivencia').classList.add('active');
+            leerCiberconvivencia();
+        }
+
+        function leerCiberconvivencia() {
+            hablar("Monster High fue creada en 2010 por Garrett Sander para Mattel. Presenta a los hijos de los monstruos más famosos del cine y la literatura en un instituto lleno de moda, humor y diversidad.");
+        }
+
+        function irANetiqueta() {
+            window.speechSynthesis.cancel();
+            document.getElementById('screen-ciberconvivencia').classList.remove('active');
+            document.getElementById('screen-netiqueta').classList.add('active');
+            leerNetiqueta();
+        }
+
+        function leerNetiqueta() {
+            hablar("El lema de Monster High es Sé tú mismo, sé único, sé un monstruo. Nos enseña a aceptar nuestras imperfecciones, a valorar la inclusión y a celebrar la amistad incondicional.");
+        }
+
+        function irAHistoria() {
+            window.speechSynthesis.cancel();
+            document.getElementById('screen-netiqueta').classList.remove('active');
+            document.getElementById('screen-historia').classList.add('active');
+            hablar("Bienvenidos al instituto Monster High. Poned a prueba vuestro conocimiento en estos 40 retos sobre los personajes, la moda y las valiosas lecciones de respeto e inclusión.");
+        }
+
+        function empezarJuego() {
+            window.speechSynthesis.cancel();
+            equipos = []; const colores = ['var(--eq1)', 'var(--eq2)', 'var(--eq3)', 'var(--eq4)', 'var(--eq5)', 'var(--eq6)'];
+            for(let i=0; i<numEquipos; i++) equipos.push({ nombre: `Equipo ${i+1}`, pts: 0, color: colores[i] });
+            
+            premiosCiberPolicia.sort(() => Math.random() - 0.5);
+
+            document.getElementById('screen-historia').classList.remove('active');
+            document.getElementById('screen-juego').classList.add('active');
+            actualizarMarcadores(); mostrarPregunta();
+        }
+
+        function generarEventosDelNivel(nivelIdx) {
+            eventosDelNivel = Array(10).fill('none');
+            let numPolicias = 2; let numRuletas = 2; 
+            let disponibles = [0,1,2,3,4,5,6,7,8,9];
+            disponibles.sort(() => Math.random() - 0.5);
+            for(let i=0; i<numPolicias; i++) eventosDelNivel[disponibles.pop()] = 'policia';
+            for(let i=0; i<numRuletas; i++) eventosDelNivel[disponibles.pop()] = 'ruleta';
+        }
+
+        function actualizarIconoNivel(nivelIdx) {
+            const container = document.getElementById('icono-nivel-container');
+            let htmlIcono = '';
+            switch(nivelIdx) {
+                case 0: htmlIcono = '<span class="emoji-grande">👗</span><span class="emoji-grande">🦇</span>'; break;
+                case 1: htmlIcono = '<span class="emoji-grande">🎀</span><span class="emoji-grande">⚡</span>'; break;
+                case 2: htmlIcono = '<span class="emoji-grande">💖</span><span class="emoji-grande">🐾</span>'; break;
+                case 3: htmlIcono = '<span class="emoji-grande">🤝</span><span class="emoji-grande">⭐</span>'; break;
+                default: htmlIcono = '<span class="emoji-grande">🎀</span>';
+            }
+            container.innerHTML = htmlIcono;
+        }
+
+        function actualizarProgreso() {
+            const progreso = (preguntaActual / 9) * 100;
+            document.getElementById('progress-bar').style.width = `${progreso}%`;
+            const dots = document.getElementById('dots-container').children;
+            for(let i = 0; i < 10; i++) {
+                dots[i].className = 'dot';
+                if (i < preguntaActual) dots[i].classList.add('passed');
+                if (i === preguntaActual) dots[i].classList.add('active');
+            }
+        }
+
+        function mostrarPregunta() {
+            clearInterval(timerInterval);
+            if (preguntaActual === 0) generarEventosDelNivel(nivelActual);
+
+            const niv = niveles[nivelActual]; const p = niv.p[preguntaActual];
+            document.getElementById('ind-nivel').innerText = niv.nombre;
+            document.getElementById('cont-pregunta').innerText = `RETO ${preguntaActual + 1} de 10`;
+            actualizarIconoNivel(nivelActual);
+            document.getElementById('texto-pregunta').innerText = p.q;
+            
+            actualizarProgreso();
+
+            let indices = [0, 1, 2, 3]; indices.sort(() => Math.random() - 0.5);
+            const cont = document.getElementById('contenedor-opciones'); cont.innerHTML = '';
+            let tOpc = ""; const letras = ["A", "B", "C", "D"];
+
+            indices.forEach((idx, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-opcion'; btn.innerText = p.a[idx];
+                btn.onclick = () => verificarRespuesta(idx);
+                cont.appendChild(btn);
+                tOpc += ` Opción ${letras[i]}: ${p.a[idx]}.`;
+            });
+
+            const eventoActivo = eventosDelNivel[preguntaActual];
+            const hasH = (eventoActivo === 'policia');
+            const hasW = (eventoActivo === 'ruleta');
+
+            document.getElementById('ciber-policia-container').style.display = hasH ? 'block' : 'none';
+            document.getElementById('btn-ruleta-container').style.display = hasW ? 'block' : 'none';
+
+            let msg = `${equipos[turnoEquipo].nombre}: ${p.q}`;
+            hablar(msg);
+
+            iniciarTimer();
+        }
+
+        function iniciarTimer() {
+            const checkTime = document.getElementById('check-tiempo').checked;
+            const containerBox = document.getElementById('timer-container-box');
+            if(!checkTime) { containerBox.style.display = 'none'; return; }
+            containerBox.style.display = 'block';
+            timeLeft = 30; 
+            const bar = document.getElementById('timer-bar'); bar.style.width = "100%";
+            timerInterval = setInterval(() => {
+                timeLeft--; bar.style.width = (timeLeft / 30 * 100) + "%";
+                if(timeLeft <= 0) { clearInterval(timerInterval); verificarRespuesta(-1); }
+            }, 1000);
+        }
+
+        function verificarRespuesta(idx) {
+            clearInterval(timerInterval); window.speechSynthesis.cancel();
+            const p = niveles[nivelActual].p[preguntaActual];
+            if(idx === p.c) {
+                playSfx('acierto'); equipos[turnoEquipo].pts += 100;
+                document.getElementById('puntos-flow-gold').style.display = 'block'; setTimeout(()=>document.getElementById('puntos-flow-gold').style.display='none',2000);
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.7 } });
+            } else {
+                playSfx('error'); equipos[turnoEquipo].pts = Math.max(0, equipos[turnoEquipo].pts - 50);
+                document.getElementById('puntos-flow-error').style.display = 'block'; setTimeout(()=>document.getElementById('puntos-flow-error').style.display='none',2000);
+            }
+            setTimeout(() => {
+                preguntaActual++;
+                if(preguntaActual >= 10) {
+                    preguntaActual = 0; nivelActual++;
+                    if(nivelActual < niveles.length) { 
+                        document.getElementById('screen-juego').classList.remove('active'); 
+                        document.getElementById('screen-transicion').classList.add('active'); 
+                        document.getElementById('nombre-siguiente-nivel').innerText = niveles[nivelActual].nombre; 
+                        hablar("¡Clase superada! Siguiente bloque: " + niveles[nivelActual].nombre);
+                    }
+                    else { mostrarRankingFinal(); }
+                } else { turnoEquipo = (turnoEquipo + 1) % numEquipos; actualizarMarcadores(); mostrarPregunta(); }
+            }, 2000);
+        }
+
+        function continuarSiguienteNivel() { 
+            document.getElementById('screen-transicion').classList.remove('active'); 
+            document.getElementById('screen-juego').classList.add('active'); 
+            turnoEquipo = (turnoEquipo + 1) % numEquipos; 
+            actualizarMarcadores(); 
+            mostrarPregunta(); 
+        }
+
+        function actualizarMarcadores() {
+            const cont = document.getElementById('contenedor-marcadores'); cont.innerHTML = '';
+            equipos.forEach((eq, i) => {
+                const div = document.createElement('div');
+                div.className = `marcador-eq ${i === turnoEquipo ? 'marcador-activo' : ''}`;
+                div.style.backgroundColor = eq.color;
+                div.innerHTML = `<div style="font-family:'Creepster'; font-size:1rem; letter-spacing:1px;">${eq.nombre}</div><div style="font-size:1.2rem; font-weight:900;">⭐ ${eq.pts}</div>`;
+                cont.appendChild(div);
+            });
+        }
+
+        function hablar(t) { 
+            window.speechSynthesis.cancel(); 
+            const u = new SpeechSynthesisUtterance(t); 
+            u.lang='es-ES'; u.rate = 0.95; 
+            window.speechSynthesis.speak(u); 
+        }
+        
+        function playSfx(type) {
+            const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
+            osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+            if (type === 'acierto') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, now); osc.frequency.setValueAtTime(659.25, now + 0.1); osc.frequency.setValueAtTime(783.99, now + 0.2);
+                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05); gainNode.gain.linearRampToValueAtTime(0, now + 0.4);
+                osc.start(now); osc.stop(now + 0.4);
+            } else if (type === 'error') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(250, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
+                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05); gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'magic') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(300, now); osc.frequency.linearRampToValueAtTime(900, now + 0.5);
+                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.2, now + 0.2); gainNode.gain.linearRampToValueAtTime(0, now + 0.5);
+                osc.start(now); osc.stop(now + 0.5);
+            }
+        }
+
+        function abrirCiberPolicia() { 
+            clearInterval(timerInterval); window.speechSynthesis.cancel(); 
+            document.getElementById('ciber-policia-container').style.display = 'none';
+            document.getElementById('modal-ciberpolicia').style.display = 'flex';
+            playSfx('magic');
+            
+            let premioObj = premiosCiberPolicia.pop();
+            if (premioObj.p === "intercambio") {
+                document.getElementById('ciberpolicia-texto').innerText = premioObj.msg;
+                document.getElementById('btn-cerrar-policia').style.display = 'none';
+                hablar(premioObj.msg); prepararIntercambioPolicia();
+            } else {
+                equipos[turnoEquipo].pts += premioObj.p;
+                document.getElementById('ciberpolicia-texto').innerText = premioObj.msg;
+                document.getElementById('btn-cerrar-policia').style.display = 'block';
+                document.getElementById('intercambio-equipos-policia').style.display = 'none';
+                actualizarMarcadores(); hablar(premioObj.msg);
+            }
+        }
+
+        function prepararIntercambioPolicia() {
+            const area = document.getElementById('intercambio-equipos-policia'); const lista = document.getElementById('lista-intercambio-policia');
+            area.style.display = 'block'; lista.innerHTML = '';
+            equipos.forEach((eq, i) => {
+                if(i !== turnoEquipo) {
+                    const btn = document.createElement('button'); btn.className = 'btn-accion'; btn.style.fontSize = '1rem'; btn.style.padding = '8px 15px';
+                    btn.innerText = `Con ${eq.nombre} (${eq.pts} pts)`; btn.onclick = () => ejecutarIntercambioPolicia(i, eq.nombre);
+                    lista.appendChild(btn);
+                }
+            });
+            if(numEquipos < 2) { 
+                document.getElementById('ciberpolicia-texto').innerText = "Modo individual activo. Sin intercambio."; 
+                area.style.display = 'none'; document.getElementById('btn-cerrar-policia').style.display = 'block';
+            }
+        }
+
+        function ejecutarIntercambioPolicia(idxTarget, nombreTarget) {
+            playSfx('magic'); let temp = equipos[turnoEquipo].pts; equipos[turnoEquipo].pts = equipos[idxTarget].pts; equipos[idxTarget].pts = temp;
+            document.getElementById('intercambio-equipos-policia').style.display = 'none';
+            let finalMsg = `Hechizo completado con ${nombreTarget}. ¡Seguimos disfrutando en Monster High!`;
+            document.getElementById('ciberpolicia-texto').innerText = finalMsg; hablar(finalMsg);
+            actualizarMarcadores(); document.getElementById('btn-cerrar-policia').style.display = 'block';
+        }
+
+        function cerrarCiberPolicia() { document.getElementById('modal-ciberpolicia').style.display = 'none'; iniciarTimer(); }
+
+        function abrirModalRuleta() { 
+            clearInterval(timerInterval); window.speechSynthesis.cancel(); 
+            document.getElementById('btn-ruleta-container').style.display = 'none'; 
+            document.getElementById('modal-ruleta').style.display = 'flex'; 
+            document.getElementById('btn-tirar-ruleta').style.display = 'block'; 
+            document.getElementById('btn-cerrar-ruleta').style.display = 'none';
+            document.getElementById('intercambio-equipos-ruleta').style.display = 'none';
+            document.getElementById('ruleta-texto').innerText = "¡Gira la ruleta para conseguir puntos o sorpresas monstruosas!";
+            hablar("¡Gira la ruleta para conseguir puntos o sorpresas monstruosas!");
+        }
+
+        function girarRuleta() {
+            const giro = 3600 + Math.floor(Math.random()*360); 
+            document.getElementById('ruleta-fisica').style.transform = `rotate(${giro}deg)`;
+            document.getElementById('btn-tirar-ruleta').style.display = 'none';
+            document.getElementById('ruleta-texto').innerText = "¡Lanzando el hechizo...";
+            setTimeout(() => {
+                const premioObj = premiosRuleta[Math.floor(Math.random() * premiosRuleta.length)];
+                if (premioObj.p === "intercambio") {
+                    playSfx('magic'); document.getElementById('ruleta-texto').innerText = premioObj.msg;
+                    hablar(premioObj.msg); prepararIntercambioRuleta();
+                } else {
+                    if(premioObj.p > 0) playSfx('acierto'); else playSfx('error');
+                    equipos[turnoEquipo].pts += premioObj.p; if(equipos[turnoEquipo].pts < 0) equipos[turnoEquipo].pts = 0; 
+                    document.getElementById('ruleta-texto').innerText = premioObj.msg;
+                    actualizarMarcadores(); hablar(premioObj.msg);
+                    document.getElementById('btn-cerrar-ruleta').style.display = 'block';
+                }
+            }, 3000);
+        }
+
+        function prepararIntercambioRuleta() {
+            const area = document.getElementById('intercambio-equipos-ruleta'); const lista = document.getElementById('lista-intercambio-ruleta');
+            area.style.display = 'block'; lista.innerHTML = '';
+            equipos.forEach((eq, i) => {
+                if(i !== turnoEquipo) {
+                    const btn = document.createElement('button'); btn.className = 'btn-accion'; btn.style.fontSize = '1rem'; btn.style.padding = '8px 15px';
+                    btn.innerText = `Con ${eq.nombre} (${eq.pts} pts)`; btn.onclick = () => ejecutarIntercambioRuleta(i, eq.nombre);
+                    lista.appendChild(btn);
+                }
+            });
+            if(numEquipos < 2) { 
+                document.getElementById('ruleta-texto').innerText = "Modo individual activo. Sin intercambio."; 
+                area.style.display = 'none'; document.getElementById('btn-cerrar-ruleta').style.display = 'block';
+            }
+        }
+
+        function ejecutarIntercambioRuleta(idxTarget, nombreTarget) {
+            playSfx('magic'); let temp = equipos[turnoEquipo].pts; equipos[turnoEquipo].pts = equipos[idxTarget].pts; equipos[idxTarget].pts = temp;
+            document.getElementById('intercambio-equipos-ruleta').style.display = 'none';
+            let finalMsg = `Puntos intercambiados con ${nombreTarget}. ¡Trabajando en equipo en Monster High!`;
+            document.getElementById('ruleta-texto').innerText = finalMsg; hablar(finalMsg);
+            actualizarMarcadores(); document.getElementById('btn-cerrar-ruleta').style.display = 'block';
+        }
+
+        function cerrarRuleta() { document.getElementById('modal-ruleta').style.display = 'none'; iniciarTimer(); }
+
+        function mostrarRankingFinal() {
+            document.getElementById('screen-juego').classList.remove('active'); 
+            document.getElementById('screen-final').classList.add('active');
+            const cont = document.getElementById('contenedor-ranking'); cont.innerHTML = '';
+            const orden = [...equipos].sort((a,b) => b.pts - a.pts);
+            const medallas = ["🥇", "🥈", "🥉", "4º", "5º", "6º"];
+            orden.forEach((eq, i) => {
+                const fila = document.createElement('div');
+                fila.className = `rank-fila ${i===0?'rank-1':''}`; fila.style.borderLeftColor = eq.color;
+                fila.innerHTML = `<div>${medallas[i]} ${eq.nombre}</div><div>⭐ ${eq.pts} pts</div>`;
+                cont.appendChild(fila);
+            });
+            confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+            hablar("¡Misión cumplida! Felicidades por completar el gran desafío educativo de Monster High.");
+        }
+
+        function mostrarDiploma() {
+            window.speechSynthesis.cancel();
+            document.getElementById('screen-final').classList.remove('active');
+            document.getElementById('screen-diploma').classList.add('active');
+            confetti({ particleCount: 300, spread: 120, origin: { y: 0.5 } });
+            hablar("¡Enhorabuena! Habéis demostrado conocer a la perfección la historia de Monster High, comprendiendo el valor de ser únicos y celebrar la amistad sincera.");
+        }
+    </script>
+</body>
+</html>

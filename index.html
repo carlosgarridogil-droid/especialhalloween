@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESPECIAL HALLOWEEN - Educación Primaria</title>
+    <!-- Fuentes espeluznantes e infantiles -->
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Fredoka:wght@600;700&family=Quicksand:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Paleta terrorífica de Halloween */
+            --naranja-halloween: #FF6600;
+            --naranja-brillante: #FF8533;
+            --morado-bruja: #8A2BE2;
+            --morado-oscuro: #4B0082;
+            --negro-noche: #121212;
+            --verde-zombi: #00FF66;
+            --sombra-terror: rgba(255, 102, 0, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Fredoka', 'Quicksand', sans-serif;
+            background: radial-gradient(circle, #2c003e 0%, #11001c 60%, #000000 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #FFFFFF;
+        }
+
+        /* Contenedor Principal con Marco de Halloween */
+        .contenedor-principal {
+            background-color: rgba(20, 10, 30, 0.95);
+            border: 8px solid var(--naranja-halloween);
+            border-radius: 35px;
+            width: 100%;
+            max-width: 980px;
+            padding: 35px 25px;
+            text-align: center;
+            box-shadow: 0 0 30px var(--sombra-terror), inset 0 0 15px rgba(138, 43, 226, 0.5);
+            position: relative;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Título Principal Espeluznante */
+        .titulo-principal {
+            font-family: 'Creepster', cursive;
+            color: var(--naranja-halloween);
+            font-size: 3.8rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            line-height: 1.1;
+            text-shadow: 4px 4px 0px #000000, 0 0 20px var(--naranja-halloween);
+        }
+
+        .subtitulo {
+            color: var(--verde-zombi);
+            font-size: 1.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 25px;
+            text-shadow: 2px 2px 4px #000;
+        }
+
+        .pildora-curso {
+            background: linear-gradient(135deg, var(--morado-bruja), var(--morado-oscuro));
+            color: #FFFFFF;
+            font-size: 1.2rem;
+            font-weight: 800;
+            padding: 8px 28px;
+            border-radius: 25px;
+            display: inline-block;
+            margin-bottom: 30px;
+            border: 2px solid var(--naranja-halloween);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        /* Rejilla 3x3 de Aplicaciones de Halloween */
+        .grid-fichas {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        /* Tarjetas de Botones */
+        .tarjeta-ficha {
+            background: linear-gradient(145deg, #2a0845, #16002c);
+            border: 3px solid var(--naranja-halloween);
+            border-radius: 22px;
+            padding: 22px 15px;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 200px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.6);
+        }
+
+        .tarjeta-ficha:hover {
+            transform: translateY(-8px) scale(1.03);
+            border-color: var(--verde-zombi);
+            background: linear-gradient(145deg, #3b0a61, #250048);
+            box-shadow: 0 0 20px var(--verde-zombi);
+        }
+
+        /* Iconos 3D Animados Grandes */
+        .icono-3d {
+            font-size: 3.8rem;
+            margin: 6px 0;
+            line-height: 1;
+            filter: drop-shadow(3px 5px 6px rgba(0, 0, 0, 0.8));
+            transition: transform 0.4s ease;
+            animation: levitar 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes levitar {
+            0% { transform: translateY(0px) rotate(0deg); }
+            100% { transform: translateY(-7px) rotate(5deg); }
+        }
+
+        .tarjeta-ficha:hover .icono-3d {
+            transform: scale(1.25) rotate(-6deg);
+            animation-play-state: paused;
+        }
+
+        .titulo-app {
+            color: #FFFFFF;
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin: 8px 0;
+            line-height: 1.25;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .boton-abrir {
+            font-size: 0.85rem;
+            color: #000000;
+            background-color: var(--naranja-halloween);
+            font-weight: 800;
+            padding: 7px 16px;
+            border-radius: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+        }
+
+        .tarjeta-ficha:hover .boton-abrir {
+            background-color: var(--verde-zombi);
+            color: #000000;
+            transform: scale(1.05);
+        }
+
+        /* Créditos Pie de Página */
+        .creditos {
+            border-top: 2px dashed var(--morado-bruja);
+            padding-top: 20px;
+            color: #D8B4FE;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .creditos strong {
+            color: var(--naranja-halloween);
+            font-weight: 800;
+        }
+
+        @media (max-width: 800px) {
+            .grid-fichas {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 550px) {
+            .grid-fichas {
+                grid-template-columns: 1fr;
+            }
+            .titulo-principal { font-size: 2.5rem; }
+            .subtitulo { font-size: 1.2rem; }
+            .contenedor-principal { border-width: 5px; padding: 20px 12px; }
+            .icono-3d { font-size: 3.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="contenedor-principal">
+
+        <!-- Encabezado Terrorífico -->
+        <h1 class="titulo-principal">🎃 ESPECIAL HALLOWEEN 🎃</h1>
+        <div class="subtitulo">Educación Primaria</div>
+        <div class="pildora-curso">👻 Colección de Recursos 🕸️</div>
+
+        <!-- Rejilla con las 9 Aplicaciones con enlace actualizado -->
+        <div class="grid-fichas">
+
+            <!-- 1. CONOCEMOS HALLOWEEN -->
+            <a href="CONOCEMOS HALLOWEEN.html" class="tarjeta-ficha" target="_blank">
+                <div class="icono-3d">🎃</div>
+                <div class="titulo-app">CONOCEMOS HALLOWEEN</div>
+                <span class="boton-abrir">Entrar ➔</span>
+            </a>
+
+            <!-- 2. Especial Curiosidades_de_Halloween 1º -->
+            <a href="Especial Curiosidades_de_Halloween 1º.html" class="tarjeta-ficha" target="_blank">
+                <div class="icono-3d">🕯️</div>
+                <div class="titulo-app">Especial Curiosidades de Halloween 1º</div>
+                <span class="boton-abrir">Entrar ➔</span>
+            </a>
+
+            <!-- 3. EL SECRETO DE LAS BRUJAS -->
+            <a href="EL SECRETO DE LAS BRUJAS.html" class="tarjeta-ficha" target="_blank">
+                <div class="icono-3d">🧙‍♀️</div>
+                <div class="titulo-app">EL SECRETO DE LAS BRUJAS</div>
+                <span class="boton-abrir">Entrar ➔</span>
+            </a>
+
+            <!-- 4. GUERRA MUNDIAL Z -->
+            <a href="GUERRA MUNDIAL Z.html" class="tarjeta-ficha" target="_blank">
+                <div class="icono-3d">🧟‍♂️</div>
+                <div class="titulo-app">GUERRA MUNDIAL Z</div>
+                <span class="boton-abrir">Entrar ➔</span>
+            </a>
+
+            <!-- 5. LA MANSIÓN ADAMS -->
+            <a href="LA MANSIÓN ADAMS.html" class="tarjeta-ficha" target="_blank">
+                <div class="icono-3d">🏰</div>
+                <div class="titulo-app">LA MANSIÓN ADAMS</div>
+                <span class="boton-abrir">Entrar ➔</span>
+            </a>
+
+            <!-- 6. MONSTER HIGH -->
+            <a href="MONSTER HIGH.html" class="tarjeta-ficha" target="_blank">
+                <div class="icono-3d">🧛‍♀️</div>
+                <div class="titulo-app">MONSTER HIGH</div>
+                <span class="boton-abrir">Entrar ➔</span>
+            </a>
+
+            <!-- 7. PESADILLAS ANTES DE NAVIDAD -->
+            <a href="PESADILLAS ANTES DE NAVIDAD.html" class="tarjeta-ficha" target="_blank">
+                <div class="icono-3d">💀</div>
+                <div class="titulo-app">PESADILLAS ANTES DE NAVIDAD</div>
+                <span class="boton-abrir">Entrar ➔</span>
+            </a>
+
+            <!-- 8. RESIDENT EVIL -->
+            <a href="RESIDENT EVIL.html" class="tarjeta-ficha" target="_blank">
+                <div class="icono-3d">☣️</div>
+                <div class="titulo-app">RESIDENT EVIL</div>
+                <span class="boton-abrir">Entrar ➔</span>
+            </a>
+
+            <!-- 9. STRANGERS THINGS -->
+            <a href="STRANGERS THINGS.html" class="tarjeta-ficha" target="_blank">
+                <div class="icono-3d">👾</div>
+                <div class="titulo-app">STRANGERS THINGS</div>
+                <span class="boton-abrir">Entrar ➔</span>
+            </a>
+
+        </div>
+
+        <!-- Créditos del Pie de Página -->
+        <div class="creditos">
+            Elaborado por <strong>Carlos Garrido</strong>
+        </div>
+
+    </div>
+
+</body>
+</html>

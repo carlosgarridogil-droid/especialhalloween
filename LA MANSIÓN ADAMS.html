@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LA FAMILIA ADDAMS - DESAFÍO MONSTRUOSO / PRIMARIA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-principal: #050505;
+            --bg-panel: #141414;
+            --purpura-addams: #6a1b9a;
+            --negro-gotico: #121212;
+            --gris-cadaver: #9e9e9e;
+            --verde-pantano: #2e7d32;
+            --rojo-sangre: #c62828;
+            --amarillo-pido: #fbc02d;
+            --texto-claro: #f5f5f5;
+            --eq1: #6a1b9a; --eq2: #2e7d32; --eq3: #c62828; --eq4: #fbc02d; --eq5: #00838f; --eq6: #ad1457;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #0d0d0d 60%, #000000 100%);
+            background-attachment: fixed;
+            color: var(--texto-claro);
+            margin: 0; padding: 0; overflow-x: hidden;
+            display: flex; flex-direction: column; min-height: 100vh; user-select: none;
+        }
+
+        .ventana-ciber {
+            border: 3px solid var(--purpura-addams);
+            background: rgba(20, 20, 20, 0.95);
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 0 25px rgba(106, 27, 154, 0.5), inset 0 0 15px rgba(0, 0, 0, 0.8);
+            max-width: 850px;
+            width: 90%;
+            margin: 20px auto;
+            position: relative;
+        }
+
+        .badge-lateral {
+            position: absolute;
+            padding: 8px 15px;
+            font-family: 'Creepster', cursive;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.9);
+            z-index: 10;
+            letter-spacing: 1px;
+        }
+        .badge-tutoria { background: var(--negro-gotico); color: var(--gris-cadaver); top: -15px; left: 15px; border: 1px solid var(--purpura-addams); }
+        .badge-primaria { background: var(--purpura-addams); color: #fff; top: -15px; right: 15px; font-weight: 900; }
+
+        .screen { display: none; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; padding: 20px; text-align: center; animation: fadeIn 0.5s ease-out; }
+        .screen.active { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+
+        h1.titulo-juego {
+            font-family: 'Creepster', cursive; font-size: clamp(2rem, 5.5vw, 3.5rem);
+            color: var(--purpura-addams); letter-spacing: 2px; line-height: 1.1;
+            text-shadow: 0 0 15px rgba(106, 27, 154, 0.8), 3px 3px 0 #000;
+            margin: 15px 0;
+        }
+
+        .selector-equipos { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 15px 0; }
+        .btn-jug {
+            width: 55px; height: 55px; border-radius: 12px; border: 2px solid var(--purpura-addams);
+            font-size: 1.5rem; font-family: 'Creepster', cursive; cursor: pointer; background: var(--bg-panel); color: white;
+            transition: 0.2s;
+        }
+        .btn-jug.seleccionado { background: var(--purpura-addams); color: #fff; font-weight: 900; transform: scale(1.1); box-shadow: 0 0 15px var(--purpura-addams); }
+
+        .game-header {
+            display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 5px;
+            font-family: 'Creepster', cursive; font-size: 1.2rem; letter-spacing: 1px;
+        }
+        .nivel-text { color: var(--purpura-addams); }
+        .pregunta-text { color: #aaa; font-family: 'Nunito', sans-serif; font-size: 0.9rem; }
+
+        .progress-container { width: 100%; height: 8px; background: #000; border-radius: 4px; margin-top: 5px; overflow: hidden; border: 1px solid var(--purpura-addams); }
+        .progress-bar { height: 100%; background: var(--purpura-addams); width: 0%; transition: width 0.3s; box-shadow: 0 0 8px var(--purpura-addams); }
+        .dots-container { display: flex; justify-content: space-between; margin: 12px 0; padding: 0 5px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: #333; transition: 0.3s; }
+        .dot.active { background: var(--amarillo-pido); box-shadow: 0 0 10px var(--amarillo-pido); transform: scale(1.3); }
+        .dot.passed { background: var(--verde-pantano); }
+
+        .timer-container {
+            width: 100%; background: #000; height: 20px; border-radius: 10px; margin-bottom: 10px; overflow: hidden; border: 2px solid var(--purpura-addams); position: relative;
+        }
+        #timer-bar { height: 100%; background: linear-gradient(90deg, var(--verde-pantano), var(--amarillo-pido), var(--rojo-sangre)); transition: width 1s linear; }
+
+        #icono-nivel-container { font-size: 3.5rem; margin: 10px 0; min-height: 70px; display: flex; align-items: center; justify-content: center; gap: 15px; }
+        .emoji-grande { animation: pulse 2s infinite; display: inline-block; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+        .btn-accion {
+            padding: 12px 35px; font-size: 1.4rem; font-family: 'Creepster', cursive; letter-spacing: 1px; border-radius: 30px;
+            border: 2px solid var(--purpura-addams); background: var(--negro-gotico); color: white; cursor: pointer;
+            box-shadow: 0 0 15px rgba(106, 27, 154, 0.5); transition: all 0.2s; margin-top: 15px; text-transform: uppercase;
+        }
+        .btn-accion:hover { background: var(--purpura-addams); color: #fff; box-shadow: 0 0 20px var(--purpura-addams); }
+
+        .btn-audio {
+            background: rgba(106, 27, 154, 0.2); border: 2px solid var(--purpura-addams); color: white;
+            padding: 8px 18px; border-radius: 20px; cursor: pointer; font-family: 'Creepster', cursive;
+            font-size: 1.1rem; margin-bottom: 15px; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; letter-spacing: 1px;
+        }
+        .btn-audio:hover { background: var(--purpura-addams); color: #fff; }
+
+        .caja-explicativa {
+            font-size: 1.25rem; line-height: 1.6; text-align: left; padding: 22px;
+            background: rgba(0,0,0,0.75); border-radius: 15px; margin-bottom: 20px;
+            border: 1px solid var(--purpura-addams); box-shadow: inset 0 0 10px rgba(0,0,0,0.9);
+        }
+        .caja-explicativa ul { margin: 10px 0 0 0; padding-left: 25px; }
+        .caja-explicativa li { margin-bottom: 10px; }
+
+        .btn-evento-flotante { position: absolute; top: -25px; width: 60px; height: 60px; cursor: pointer; z-index: 10; border: none; background: transparent; }
+        #ciber-policia-container { left: 15px; font-size: 3.8rem; filter: drop-shadow(0 0 10px var(--purpura-addams)); }
+        #btn-ruleta-container { right: 15px; font-size: 3.5rem; filter: drop-shadow(0 0 10px var(--amarillo-pido)); }
+
+        .panel-pregunta { background: var(--bg-panel); color: white; width: 95%; max-width: 800px; border-radius: 20px; padding: 25px; border: 2px solid var(--purpura-addams); position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.9); }
+        #contenedor-opciones { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .btn-opcion { background: #000; border: 1px solid #333; padding: 15px; font-size: 1rem; color: white; font-weight: 700; border-radius: 10px; cursor: pointer; text-align: left; transition: 0.2s; }
+        .btn-opcion:hover { border-color: var(--purpura-addams); background: #1a1a1a; }
+        .btn-opcion.correcta { background: var(--verde-pantano) !important; color: #fff; font-weight: 900; }
+        .btn-opcion.incorrecta { background: var(--rojo-sangre) !important; color: white; }
+
+        #contenedor-marcadores { display: flex; gap: 10px; width: 100%; justify-content: center; flex-wrap: wrap; margin-bottom: 15px; }
+        .marcador-eq { width: 110px; padding: 8px; border-radius: 10px; background: #141414; opacity: 0.6; border: 2px solid transparent; }
+        .marcador-eq.marcador-activo { opacity: 1; transform: scale(1.05); border-color: var(--purpura-addams); box-shadow: 0 0 10px var(--purpura-addams); }
+
+        .ruleta-wrapper { position: relative; width: 220px; height: 220px; margin: 15px auto; border-radius: 50%; border: 6px solid var(--purpura-addams); overflow: hidden; }
+        .ruleta-bg { width: 100%; height: 100%; background: conic-gradient(#6a1b9a 0% 20%, #2e7d32 20% 40%, #c62828 40% 60%, #fbc02d 60% 80%, #00838f 80% 100%); transition: transform 3s cubic-bezier(0.1, 0.8, 0.1, 1); }
+        .ruleta-pointer { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 20px solid var(--amarillo-pido); z-index: 5; }
+        
+        .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.92); z-index:10000; align-items:center; justify-content:center; }
+        .modal-content { background: var(--bg-panel); color: white; padding: 25px; border-radius: 20px; text-align: center; max-width: 420px; width: 90%; border: 2px solid var(--purpura-addams); box-shadow: 0 0 25px var(--purpura-addams); }
+
+        .puntos-flow { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Creepster', cursive; font-size: 4rem; z-index: 9999; pointer-events: none; animation: puntosFlowUp 2s ease-out forwards; display: none; }
+        #puntos-flow-gold { color: var(--amarillo-pido); text-shadow: 0 0 20px var(--amarillo-pido); }
+        #puntos-flow-error { color: var(--rojo-sangre); text-shadow: 0 0 20px var(--rojo-sangre); }
+        @keyframes puntosFlowUp { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } 20% { opacity: 1; transform: translate(-50%, -60%) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -200px) scale(0.8); } }
+        
+        .rank-fila { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; margin: 8px 0; border-radius: 10px; background: rgba(255,255,255,0.05); border-left: 8px solid transparent; font-family: 'Creepster', cursive; font-size: 1.4rem; letter-spacing: 1px; }
+        .rank-1 { background: rgba(106, 27, 154, 0.3); border: 1px solid var(--purpura-addams); transform: scale(1.03); }
+
+        .diploma-container { background: #000; color: white; border: 4px solid var(--purpura-addams); padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 0 40px rgba(106, 27, 154, 0.6); max-width: 800px; }
+
+        .autor-credito {
+            margin-top: 15px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--gris-cadaver);
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- EFECTOS DE PUNTOS -->
+    <div id="puntos-flow-gold" class="puntos-flow">+100</div>
+    <div id="puntos-flow-error" class="puntos-flow">-50</div>
+
+    <!-- PANTALLA INICIAL -->
+    <div id="screen-inicio" class="screen active">
+        <div class="ventana-ciber">
+            <div class="badge-lateral badge-tutoria">MANSIÓN ADDAMS</div>
+            <div class="badge-lateral badge-primaria">EDUCACIÓN PRIMARIA</div>
+            <h1 class="titulo-juego">EL DESAFÍO DE LA FAMILIA ADDAMS 🥀🖐️</h1>
+            <p style="font-weight: 700; color: var(--purpura-addams); margin: 5px 0;">Junta de Andalucía - Cuestionario Interactivo sobre la Historia, Personajes y Valores de la Familia Addams</p>
+            
+            <div style="font-size: 4.5rem; margin: 20px 0; display: flex; justify-content: center; gap: 20px;">
+                <span class="emoji-grande">🥀</span>
+                <span class="emoji-grande" style="animation-delay: 0.3s;">🖐️</span>
+                <span class="emoji-grande" style="animation-delay: 0.6s;">🏰</span>
+            </div>
+            
+            <p style="font-size: 1.1rem; font-weight: 700;">Selecciona número de equipos:</p>
+            <div class="selector-equipos">
+                <button class="btn-jug" onclick="seleccionarJugadores(1)">1</button>
+                <button class="btn-jug" onclick="seleccionarJugadores(2)">2</button>
+                <button class="btn-jug seleccionado" onclick="seleccionarJugadores(3)">3</button>
+                <button class="btn-jug" onclick="seleccionarJugadores(4)">4</button>
+                <button class="btn-jug" onclick="seleccionarJugadores(5)">5</button>
+                <button class="btn-jug" onclick="seleccionarJugadores(6)">6</button>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.6); padding: 12px; border-radius: 10px; margin: 15px 0; border: 1px solid var(--purpura-addams);">
+                <label style="cursor: pointer; font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <input type="checkbox" id="check-tiempo" checked style="transform: scale(1.4);"> Temporizador Macabro (30 seg por reto)
+                </label>
+            </div>
+
+            <button class="btn-accion" onclick="irACiberconvivencia()">¡ENTRAR A LA MANSIÓN!</button>
+            <div class="autor-credito">Aplicación elaborada por el maestro Carlos Garrido</div>
+        </div>
+    </div>
+
+    <!-- PANTALLA EXPLICATIVA 1: ORIGEN DE LA FAMILIA ADDAMS -->
+    <div id="screen-ciberconvivencia" class="screen">
+        <div class="ventana-ciber">
+            <h1 style="color: var(--purpura-addams);">¿QUIÉN CREÓ A LA FAMILIA ADDAMS? 🎨🖤</h1>
+            <button class="btn-audio" onclick="leerCiberconvivencia()">🔊 Escuchar Explicación</button>
+            
+            <div class="caja-explicativa">
+                <p style="margin-top:0;">La Familia Addams fue creada en 1938 por el dibujante estadounidense <strong>Charles Addams</strong> como una tira cómica en la revista <em>The New Yorker</em>.</p>
+                <p>Curiosidades sobre su origen y concepto:</p>
+                <ul>
+                    <li><strong>Una sátira divertida:</strong> Charles Addams quería hacer una parodia graciosa de la familia americana ideal del siglo XX, invirtiendo todos sus gustos.</li>
+                    <li><strong>Lo macabro como algo normal:</strong> Lo que a los demás les parece terrorífico o raro, a la Familia Addams les parece encantador, dulce y divertido.</li>
+                    <li><strong>Éxito en televisión y cine:</strong> Con el paso de los años, pasaron de los cómics en papel a series de televisión, películas de cine y series modernas.</li>
+                </ul>
+            </div>
+            
+            <button class="btn-accion" onclick="irANetiqueta()">SIGUIENTE: VALORES Y CONVIVENCIA ➔</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA EXPLICATIVA 2: VALORES Y INTEGRANTES -->
+    <div id="screen-netiqueta" class="screen">
+        <div class="ventana-ciber">
+            <h1 style="color: var(--amarillo-pido);">AMOR, LEALTAD Y DIVERSIDAD 🖤📜</h1>
+            <button class="btn-audio" onclick="leerNetiqueta()">🔊 Escuchar Explicación</button>
+
+            <div class="caja-explicativa">
+                <p style="margin-top:0;">A pesar de su apariencia oscura y sus gustos extravagantes, la Familia Addams enseña grandes valores a la sociedad:</p>
+                <p>Grandes lecciones de la Familia Addams:</p>
+                <ul>
+                    <li><strong>Aceptación incondicional:</strong> Aceptan a cada miembro de la familia exactamente como es, celebrando las diferencias sin juzgar.</li>
+                    <li><strong>Unión y lealtad familiar:</strong> Gómez, Morticia, Miércoles y Pugsley se apoyan mutuamente en todo momento con enorme cariño.</li>
+                    <li><strong>Respeto a lo diferente:</strong> Nos enseñan que ser "raro" o diferente no es algo malo, sino una cualidad única que debemos respetar en el colegio.</li>
+                </ul>
+            </div>
+
+            <button class="btn-accion" onclick="irAHistoria()">¡IR A LA HISTORIA DE LA MISIÓN!</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA HISTORIA E INTRODUCCIÓN -->
+    <div id="screen-historia" class="screen">
+        <div class="ventana-ciber">
+            <h1 style="color: var(--amarillo-pido);">¡BIENVENIDOS AL DESAFÍO ADDAMS! 🥀</h1>
+            <div class="caja-explicativa">
+                <p>¡Atención, alumnos de Primaria! Cosa (Cosa) nos ha traído una invitación especial para poner a prueba nuestro ingenio y conocimientos en la Mansión Addams.</p>
+                <p>A través de estos 40 retos divididos en 4 bloques exploraremos el <strong>origen del cómic</strong>, los <strong>personajes icónicos</strong>, sus <strong>extrañas costumbres</strong> y los <strong>valores de convivencia</strong> que nos enseñan.</p>
+                <p>Recordad: ¡El mejor equipo no es solo el que acumula más puntos, sino el que colabora con respeto, deportividad y espíritu de equipo!</p>
+            </div>
+            <button class="btn-accion" onclick="empezarJuego()">¡ABRIR EL PORTÓN MACABRO!</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE JUEGO -->
+    <div id="screen-juego" class="screen">
+        <div id="contenedor-marcadores"></div>
+        <div class="panel-pregunta">
+            <button id="ciber-policia-container" class="btn-evento-flotante" onclick="abrirCiberPolicia()">🥀</button>
+            <button id="btn-ruleta-container" class="btn-evento-flotante" onclick="abrirModalRuleta()">🎡</button>
+            
+            <div class="game-header">
+                <span id="ind-nivel" class="nivel-text">BLOQUE 1</span>
+                <span id="cont-pregunta" class="pregunta-text">RETO 1 de 10</span>
+            </div>
+            
+            <div class="progress-container"><div id="progress-bar" class="progress-bar"></div></div>
+            <div id="dots-container" class="dots-container">
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            </div>
+
+            <div class="timer-container" id="timer-container-box"><div id="timer-bar"></div></div>
+            <div id="icono-nivel-container"></div>
+            <div id="texto-pregunta" style="font-size: 1.4rem; font-weight: 800; margin: 10px 0;"></div>
+            <div id="contenedor-opciones"></div>
+        </div>
+    </div>
+
+    <!-- PANTALLA TRANSICIÓN ENTRE BLOQUES -->
+    <div id="screen-transicion" class="screen">
+        <div class="ventana-ciber">
+            <div style="font-size: 4rem;">⚡ 🥀 ⚡</div>
+            <h1 style="color: var(--verde-pantano);">¡BLOQUE MONSTRUOSO COMPLETADO!</h1>
+            <p style="font-size: 1.3rem;">Siguiente sala de la Mansión:</p>
+            <h2 id="nombre-siguiente-nivel" style="color: var(--purpura-addams); font-family: 'Creepster'; font-size: 2rem;"></h2>
+            <div style="font-size: 2.5rem; margin: 15px;">🏰 🖐️ 🖤</div>
+            <button class="btn-accion" onclick="continuarSiguienteNivel()">¡EXPLORAR LA SIGUIENTE SALA!</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA FINAL - RANKING -->
+    <div id="screen-final" class="screen">
+        <div class="ventana-ciber">
+            <h1 class="titulo-juego">CLASIFICACIÓN DE LA MANSIÓN ADDAMS</h1>
+            <div style="font-size: 3.5rem; margin-bottom: 15px;">🏆🥀</div>
+            <div id="contenedor-ranking" style="width: 100%; text-align: left;"></div>
+            <button class="btn-accion" style="margin-top:25px; background: var(--amarillo-pido); color: #000;" onclick="mostrarDiploma()">OBTENER CERTIFICADO DE MIEMBRO HONORARIO 📜</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA DIPLOMA / CERTIFICADO -->
+    <div id="screen-diploma" class="screen">
+        <div class="diploma-container">
+            <div style="font-size: 5rem; margin-bottom: 10px;">🏅🖐️🥀</div>
+            <h1 style="color: var(--purpura-addams); font-family: 'Creepster'; font-size: 2.8rem; margin: 10px 0;">DIPLOMA DE MIEMBRO HONORARIO ADDAMS</h1>
+            <h2 style="color: var(--amarillo-pido); font-size: 1.8rem; margin: 10px 0;">EDUCACIÓN PRIMARIA - MANSIÓN ADDAMS</h2>
+            <p style="font-size: 1.3rem; line-height: 1.6; padding: 15px; border-radius: 12px; background: rgba(255,255,255,0.05); margin: 20px; border: 1px solid var(--purpura-addams);">
+                Habéis demostrado conocer a la perfección la historia de <strong style="color: var(--purpura-addams);">La Familia Addams</strong>, comprendiendo sus orígenes, el valor del respeto a la diversidad y la importancia del compañerismo.<br><br>
+                ¡Enhorabuena, el portón de la Mansión siempre estará abierto para vosotros!
+            </p>
+            <button class="btn-accion" onclick="location.reload()">REINICIAR DESAFÍO</button>
+        </div>
+    </div>
+
+    <!-- MODAL MORTICIA / TUTOR -->
+    <div id="modal-ciberpolicia" class="modal-overlay">
+        <div class="modal-content">
+            <h2 style="color: var(--purpura-addams); font-family: 'Creepster'; font-size: 2rem;">🥀 EL CONSEJO DE MORTICIA 🥀</h2>
+            <p id="ciberpolicia-texto" style="font-size:1.4rem; font-weight: 700;"></p>
+            
+            <div id="intercambio-equipos-policia" style="display:none; margin-bottom: 15px;">
+                <p style="font-weight:bold;">Elige el equipo para realizar el intercambio de pócimas:</p>
+                <div id="lista-intercambio-policia" style="display:flex; flex-direction:column; gap:5px;"></div>
+            </div>
+
+            <button id="btn-cerrar-policia" class="btn-accion" onclick="cerrarCiberPolicia()" style="margin: 0 auto; display: block;">¡ENTENDIDO!</button>
+        </div>
+    </div>
+    
+    <!-- MODAL RULETA MÁGICA -->
+    <div id="modal-ruleta" class="modal-overlay">
+        <div class="modal-content">
+            <h2 style="color: var(--amarillo-pido); font-family: 'Creepster'; font-size: 2rem;">🎡 RULETA MACABRA DE ADDAMS 🎡</h2>
+            <div class="ruleta-wrapper"><div class="ruleta-pointer"></div><div id="ruleta-fisica" class="ruleta-bg"></div></div>
+            <p id="ruleta-texto" style="font-size:1.3rem; font-weight: 700; min-height: 50px;"></p>
+            
+            <div id="intercambio-equipos-ruleta" style="display:none; margin-bottom: 15px;">
+                <p style="font-weight:bold;">Elige el equipo para realizar el hechizo de intercambio:</p>
+                <div id="lista-intercambio-ruleta" style="display:flex; flex-direction:column; gap:5px;"></div>
+            </div>
+
+            <button id="btn-tirar-ruleta" class="btn-accion" onclick="girarRuleta()" style="margin: 0 auto; display: block;">¡GIRAR RULETA!</button>
+            <button id="btn-cerrar-ruleta" class="btn-accion" onclick="cerrarRuleta()" style="display:none; margin: 0 auto;">¡ACEPTAR!</button>
+        </div>
+    </div>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let numEquipos = 3, equipos = [], nivelActual = 0, preguntaActual = 0, turnoEquipo = 0;
+        let timerInterval, timeLeft;
+        let eventosDelNivel = [];
+
+        // EVENTOS DEL CONSEJO DE MORTICIA
+        let premiosCiberPolicia = [
+            { p: 100, msg: "¡Ayudaste a Cosa a llevar la correspondencia de la mansión! +100 pts" },
+            { p: 200, msg: "¡Le cortaste los pétalos a las rosas para regalárselas a Morticia! +200 pts" },
+            { p: 300, msg: "¡Explicaste a tus amigos el origen del cómic de Charles Addams! +300 pts" },
+            { p: 400, msg: "¡Acompañaste a Gómez en sus juegos de trenes sin hacer trampa! +400 pts" },
+            { p: 500, msg: "¡Respetaste a un compañero que pensaba diferente a ti! +500 pts" },
+            { p: 600, msg: "¡Recogiste los trastos viejos del trastero de Tío Fétido! +600 pts" },
+            { p: 700, msg: "¡Escribiste un poema gótico y divertido en clase de Lengua! +700 pts" },
+            { p: 800, msg: "¡Aceptaste a un amigo nuevo en tu grupo de trabajo! +800 pts" },
+            { p: 900, msg: "¡Aprendiste el nombre de todos los miembros de la Familia Addams! +900 pts" },
+            { p: 1000, msg: "¡Eres un auténtico Guardián del Respeto y la Diversidad! +1000 pts" },
+            { p: "intercambio", msg: "¡Intercambio Macabro! Intercambia puntos con otro equipo." },
+            { p: "intercambio", msg: "¡Intercambio Macabro! Intercambia puntos con otro equipo." },
+            { p: "intercambio", msg: "¡Intercambio Macabro! Intercambia puntos con otro equipo." }
+        ];
+
+        // BANCO DE PREGUNTAS (4 BLOQUES TEMÁTICOS SOBRE LA FAMILIA ADDAMS)
+        const niveles = [
+            { nombre: "BLOQUE 1: ORIGEN Y CREADOR", p: [
+                { q: "¿Quién fue el dibujante que creó originalmente a la Familia Addams?", a: ["Charles Addams.", "Walt Disney.", "Stan Lee.", "Quino."], c: 0 },
+                { q: "¿En qué año aparecieron por primera vez los cómics de la Familia Addams?", a: ["En 1938.", "En 2000.", "En 1910.", "En 1985."], c: 0 },
+                { q: "¿En qué famosa revista norteamericana se publicaban sus viñetas cómicas?", a: ["The New Yorker.", "National Geographic.", "Time Magazine.", "Comic Kids."], c: 0 },
+                { q: "¿Qué pretendía satirizar el creador con las historias de la Familia Addams?", a: ["A la familia tradicional americana invirtiendo sus gustos.", "A los monstruos del espacio exterior.", "A los antiguos reyes medievales.", "A los deportistas profesionales."], c: 0 },
+                { q: "A diferencia de las familias comunes, ¿qué tipo de ambiente prefieren en su hogar?", a: ["Un ambiente oscuro, antiguo, sombrío y misterioso.", "Un piso moderno lleno de luces de neón brillantes.", "Una casa de campo llena de flores y color blanco.", "Un barco de velas en el océano."], c: 0 },
+                { q: "¿En qué formato comenzaron las aventuras de la Familia Addams antes de llegar a la TV?", a: ["En tiras cómicas de periódicos y revistas.", "En videojuegos de consola.", "En canciones de radio.", "En obras de teatro de marionetas."], c: 0 },
+                { q: "Cuando la historia saltó a la serie de televisión en los años 60, ¿qué se añadió por primera vez?", a: ["Nombres propios a todos los personajes.", "Efectos especiales en 3D.", "Colores fosforescentes en la ropa.", "Canciones de música pop."], c: 0 },
+                { q: "¿Cuál es el instrumento musical característico con el que empieza la famosa sintonía de la serie?", a: ["Chasquidos de dedos y un clavicémbalo.", "Un tambor gigante de fiesta.", "Una flauta dulce de madera.", "Una guitarra eléctrica pesada."], c: 0 },
+                { q: "El valor pedagógico de conocer la historia de los Addams radica en...", a: ["Comprender cómo el arte y el humor pueden enseñarnos a aceptar las diferencias.", "Aprender a asustar a la gente en la calle.", "Comprar cosas viejas para casa.", "No lavarse la cara nunca."], c: 0 },
+                { q: "A pesar de sus costumbres siniestras, la característica principal de la familia es que...", a: ["Se quieren muchísimo y siempre permanecen unidos.", "Están enfadados entre ellos todo el día.", "No se hablan durante las comidas.", "No dejan entrar a nadie en su casa."], c: 0 }
+            ]},
+            { nombre: "BLOQUE 2: LOS INTEGRANTES DE LA MANSIÓN", p: [
+                { q: "¿Cómo se llama el alegre y apasionado padre de la Familia Addams?", a: ["Gómez Addams.", "Fétido Addams.", "Lurch.", "Pugsley."], c: 0 },
+                { q: "¿Cómo se llama la elegante madre vestida siempre de negro?", a: ["Morticia Addams.", "Abuela Addams.", "Miércoles Addams.", "Debbie."], c: 0 },
+                { q: "¿Qué peculiaridad tiene la hija llamada Miércoles (Wednesday)?", a: ["Es muy inteligente, seria, viste de negro y le fascinan las cosas oscuras.", "Siempre está sonriendo y viste de color rosa brillante.", "Es la deportista estrella del equipo de fútbol.", "Le encanta cantar ópera por las mañanas."], c: 0 },
+                { q: "¿Cómo se llama el hermano de Miércoles al que le encantan los experimentos peligrosos?", a: ["Pugsley.", "Gómez.", "Lucas.", "Cousin Itt."], c: 0 },
+                { q: "¿Qué personaje es un tío extravagante capaz de encender una bombilla con la boca?", a: ["Tío Fétido (Uncle Fester).", "Lurch.", "Gómez.", "Cosa."], c: 0 },
+                { q: "¿Qué es 'Cosa' (Thing) en la mansión Addams?", a: ["Una mano viviente y servicial que se comunica con señas.", "Un perro gigante de tres cabezas.", "Un fantasma flotante de color verde.", "Un sombrero mágico que habla."], c: 0 },
+                { q: "¿Quién es el altísimo y silencioso mayordomo de la mansión que se parece al monstruo de Frankenstein?", a: ["Lurch.", "Tío Fétido.", "Gómez.", "Pugsley."], c: 0 },
+                { q: "¿Cómo se llama el familiar que está totalmente cubierto de pelo largo y habla un lenguaje muy rápido?", a: ["Primo Eso / Tío Cosa (Cousin Itt).", "Lurch.", "Tío Fétido.", "Gómez."], c: 0 },
+                { q: "¿Qué personaje prepara pócimas extrañas y comidas exóticas en la cocina de la mansión?", a: ["La Abuela Addams (Grandmama).", "Morticia.", "Miércoles.", "Cosa."], c: 0 },
+                { q: "La relación entre Gómez y Morticia destaca porque...", a: ["Se tratan con un amor, respeto y admiración constantes.", "Siempre están discutiendo por el mando a distancia.", "No se conocen casi nada.", "Compiten por ver quién manda en casa."], c: 0 }
+            ]},
+            { nombre: "BLOQUE 3: COSTUMBRES Y MISTERIOS MACABROS", p: [
+                { q: "¿Qué hace Morticia con las rosas del jardín cuando las corta?", a: ["Corta los pétalos coloridos y se queda solo con el tallo de espinas.", "Les echa colonia de flores.", "Las pinta de amarillo brillante.", "Las vende en la plaza del pueblo."], c: 0 },
+                { q: "¿Qué pasatiempo de Gómez le encanta hacer en el salón con sus trenes de juguete?", a: ["Hacerlos chocar en los cruces de vías.", "Pintarlos de color rosa.", "Guardarlos bajo llave en una caja.", "Regalárselos a los vecinos."], c: 0 },
+                { q: "¿Qué tipo de mascotas raras se pueden encontrar en la Mansión Addams?", a: ["Una planta carnívora llamada Cleopatra y un león.", "Hámsteres y canarios amarillos.", "Peces de colores en una pecera redonda.", "Caballitos de mar."], c: 0 },
+                { q: "En la cocina de la Abuela Addams, ¿cuál es un ingrediente de sus recetas mágicas?", a: ["Pócimas con escamas de dragón y hierbas raras.", "Azúcar glass y sirope de fresa.", "Harina blanca para bizcochos dulces.", "Chocolate con leche."], c: 0 },
+                { q: "¿Qué suele hacer Miércoles con sus muñecas viejas?", a: ["Quitarles la cabeza para jugar a guillotinarlas.", "Ponerles vestidos de princesa brillantes.", "Peinarles el pelo con lazos de colores.", "Llevarlas a un concurso de belleza."], c: 0 },
+                { q: "Cuando a alguien le da un dolor de cabeza, ¿qué 'remedio' prefiere Tío Fétido?", a: ["Meter la cabeza en una prensa de tornillo para relajarse.", "Tomar una manzanilla caliente con miel.", "Irse a dormir a una cama muy blanda.", "Escuchar música relajante de pájaros."], c: 0 },
+                { q: "¿Cómo reacciona la Familia Addams cuando el clima está nublado, hay tormenta y truenos?", a: ["Se ponen muy felices y disfrutan del 'buen tiempo'.", "Se esconden asustados debajo de las mantas.", "Se ponen tristes y empiezan a llorar.", "Cancelan todos sus juegos en el jardín."], c: 0 },
+                { q: "El famoso baile que baila Miércoles Addams en su fiesta escolar se caracteriza por...", a: ["Movimientos rígidos, góticos, expresivos y muy originales.", "Bailar un vals tradicional elegante.", "Hacer acrobacias de gimnasia olímpica.", "Bailar salsa tropical."], c: 0 },
+                { q: "¿Qué hace la familia cuando recibe a un visitante o inspector en su casa?", a: ["Tratarlo con enorme cortesía y ofrecerle sus extrañas hospitalidades.", "Echarlo a la calle a pedradas.", "Esconderse todos en el trastero.", "Llamar a la policía para que se lo lleve."], c: 0 },
+                { q: "Lo que para otras personas es un 'castigo', para los niños Addams resulta...", a: ["Un juego super divertido y apasionante.", "Un motivo para enfadarse mucho.", "Aburridísimo y pesado.", "Algo que les hace llorar."], c: 0 }
+            ]},
+            { nombre: "BLOQUE 4: VALORES DE CONVIVENCIA Y DIVERSIDAD", p: [
+                { q: "¿Qué lección sobre la diversidad nos enseña la Familia Addams?", a: ["Que ser diferente es normal y que debemos respetar a todas las personas.", "Que hay que vestirse todos exactamente igual.", "Que sólo debemos hablar con la gente de nuestra clase.", "Que las cosas raras hay que ocultarlas."], c: 0 },
+                { q: "Cuando en el colegio vemos a un compañero con gustos o estilos distintos, la actitud Addams es...", a: ["Respetarlo, aceptarlo y aprender de sus diferencias.", "Burlarnos de él en el recreo.", "Decirle que cambie de forma de vestir.", "No dejarle jugar con el grupo."], c: 0 },
+                { q: "¿Por qué la Familia Addams es un gran ejemplo de trabajo en equipo?", a: ["Porque todos colaboran en casa y se ayudan cuando tienen problemas.", "Porque cada uno vive en un país diferente.", "Porque nunca comparten sus juguetes o herramientas.", "Porque dejan que Cosa lo haga todo sola."], c: 0 },
+                { q: "Si compartimos tareas o juegos en el aula, el valor fundamental que debemos aplicar es...", a: ["El respeto mutuo y la cooperación entre todos.", "Tratar de ganar aplastando a los demás.", "Hacer el trabajo sin escuchar la opinión del compañero.", "Enfadarnos si no se hace lo que nosotros queremos."], c: 0 },
+                { q: "En la serie de Miércoles (Wednesday), la academia Nunca Más (Nevermore) es un lugar para...", a: ["Jóvenes 'excluidos' que aprenden a convivir y valorar sus talentos únicos.", "Estudiantes que sacan solo dieces en matemáticas.", "Entrenar deportistas de élite mundial.", "Aprender a fabricar coches eléctricos."], c: 0 },
+                { q: "Una forma de aplicar la empatía en nuestro colegio es...", a: ["Ponerse en el lugar de los demás para comprender sus sentimientos.", "Pensar únicamente en nuestras propias notas.", "Ignorar a los niños que están tristes en el patio.", "Exigir que todos jueguen a lo que nosotros digamos."], c: 0 },
+                { q: "Al trabajar en un proyecto de grupo como este cuestionario, lo más importante es...", a: ["Escuchar las respuestas de todo el equipo con deportividad.", "Gritar más fuerte para imponer nuestra respuesta.", "Dejar que solo trabaje un miembro del equipo.", "Rendirse si fallo una pregunta."], c: 0 },
+                { q: "La Familia Addams nunca juzga a la gente por su apariencia externa porque...", a: ["Saben que lo que verdaderamente importa es el corazón y el carácter.", "No se fijan en las personas que pasan por la calle.", "Tienen mala vista y no ven bien.", "Solo les importa el dinero de la gente."], c: 0 },
+                { q: "¿Qué valor ético ejercitamos al conocer y respetar diferentes historias culturales o artísticas?", a: ["Tolerancia, mente abierta y riqueza cultural.", "Competencia agresiva.", "Olvidar nuestras costumbres familiares.", "Enfadarnos con los clásicos."], c: 0 },
+                { q: "En definitiva, el mensaje positivo de la Familia Addams para nuestra clase es...", a: ["Celebrar la autenticidad, amar a nuestra familia y respetar a cada persona tal como es.", "Ser personas serias que nunca sonríen.", "Asustar a los profesores en los pasillos.", "No hacer nunca los deberes de clase."], c: 0 }
+            ]}
+        ];
+
+        // PREMIOS DE LA RULETA MACABRA
+        const premiosRuleta = [
+            { p: 50, msg: "¡Cosa te dio un apretón de manos amistoso! +50 pts." },
+            { p: 100, msg: "¡Cortaste los pétalos de tres rosas con Morticia! +100 pts." },
+            { p: 150, msg: "¡Acompañaste a Gómez a ver sus trenes en miniatura! +150 pts." },
+            { p: 200, msg: "¡Escribiste un poema siniestro pero muy bonito! +200 pts." },
+            { p: 250, msg: "¡Le diste de comer a la planta carnívora Cleopatra! +250 pts." },
+            { p: 300, msg: "¡Ayudaste a Lurch a llevar las bandejas del té! +300 pts." },
+            { p: 350, msg: "¡Tío Fétido encendió una bombilla para iluminar tu mesa! +350 pts." },
+            { p: 400, msg: "¡Aprendiste el baile de Miércoles en el recreo! +400 pts." },
+            { p: 450, msg: "¡Descifraste un acertijo del primo Eso! +450 pts." },
+            { p: 500, msg: "¡La Abuela te regaló una pócima de la sabiduría! +500 pts." },
+            { p: 600, msg: "¡Gran banquete macabro en la Mansión Addams! +600 pts." },
+            { p: 700, msg: "¡Pócima de la Lealtad Familiar concedida! +700 pts." },
+            { p: 800, msg: "¡Demostración de compañerismo e inclusión! +800 pts." },
+            { p: 1000, msg: "¡SUPER HECHIZO DEL MIEMBRO HONORARIO ADDAMS! +1000 pts." },
+            { p: -50, msg: "Un tren de juguete se desvió de la vía: -50 pts." },
+            { p: -100, msg: "Olvidaste saludar a Lurch al entrar a la mansión: -100 pts." },
+            { p: -150, msg: "Cleopatra la planta intentó comerse tu lápiz: -150 pts." },
+            { p: -200, msg: "Te tropezaste con la alfombra de oso de la mansión: -200 pts." },
+            { p: "intercambio", msg: "¡Estrategia Macabra! Intercambio de puntos. Elige con quién." },
+            { p: "intercambio", msg: "¡Estrategia Macabra! Intercambio de puntos. Elige con quién." }
+        ];
+
+        function seleccionarJugadores(n) { 
+            numEquipos = n; 
+            document.querySelectorAll('.btn-jug').forEach((b, i) => b.classList.toggle('seleccionado', (i+1)===n)); 
+        }
+
+        // NAVEGACIÓN INICIAL DE PANTALLAS
+        function irACiberconvivencia() {
+            document.getElementById('screen-inicio').classList.remove('active');
+            document.getElementById('screen-ciberconvivencia').classList.add('active');
+            leerCiberconvivencia();
+        }
+
+        function leerCiberconvivencia() {
+            hablar("La Familia Addams fue creada en 1938 por el dibujante Charles Addams. Quería hacer una divertida sátira de la familia tradicional, haciendo que lo macabro y oscuro fuera para ellos algo normal, dulce y encantador.");
+        }
+
+        function irANetiqueta() {
+            window.speechSynthesis.cancel();
+            document.getElementById('screen-ciberconvivencia').classList.remove('active');
+            document.getElementById('screen-netiqueta').classList.add('active');
+            leerNetiqueta();
+        }
+
+        function leerNetiqueta() {
+            hablar("Los Addams nos enseñan grandes valores de aceptación, lealtad y respeto a la diversidad. Nos muestran que ser diferente o raro no es malo, sino una virtud única que debemos respetar en el colegio.");
+        }
+
+        function irAHistoria() {
+            window.speechSynthesis.cancel();
+            document.getElementById('screen-netiqueta').classList.remove('active');
+            document.getElementById('screen-historia').classList.add('active');
+            hablar("Bienvenidos a la Mansión Addams. Poned a prueba vuestro ingenio en estos 40 retos sobre la historia, los personajes y los valores de esta singular familia.");
+        }
+
+        function empezarJuego() {
+            window.speechSynthesis.cancel();
+            equipos = []; const colores = ['var(--eq1)', 'var(--eq2)', 'var(--eq3)', 'var(--eq4)', 'var(--eq5)', 'var(--eq6)'];
+            for(let i=0; i<numEquipos; i++) equipos.push({ nombre: `Equipo ${i+1}`, pts: 0, color: colores[i] });
+            
+            premiosCiberPolicia.sort(() => Math.random() - 0.5);
+
+            document.getElementById('screen-historia').classList.remove('active');
+            document.getElementById('screen-juego').classList.add('active');
+            actualizarMarcadores(); mostrarPregunta();
+        }
+
+        function generarEventosDelNivel(nivelIdx) {
+            eventosDelNivel = Array(10).fill('none');
+            let numPolicias = 2; let numRuletas = 2; 
+            let disponibles = [0,1,2,3,4,5,6,7,8,9];
+            disponibles.sort(() => Math.random() - 0.5);
+            for(let i=0; i<numPolicias; i++) eventosDelNivel[disponibles.pop()] = 'policia';
+            for(let i=0; i<numRuletas; i++) eventosDelNivel[disponibles.pop()] = 'ruleta';
+        }
+
+        function actualizarIconoNivel(nivelIdx) {
+            const container = document.getElementById('icono-nivel-container');
+            let htmlIcono = '';
+            switch(nivelIdx) {
+                case 0: htmlIcono = '<span class="emoji-grande">🎨</span><span class="emoji-grande">🖤</span>'; break;
+                case 1: htmlIcono = '<span class="emoji-grande">🏰</span><span class="emoji-grande">🖐️</span>'; break;
+                case 2: htmlIcono = '<span class="emoji-grande">🥀</span><span class="emoji-grande">🧪</span>'; break;
+                case 3: htmlIcono = '<span class="emoji-grande">🤝</span><span class="emoji-grande">⭐</span>'; break;
+                default: htmlIcono = '<span class="emoji-grande">🥀</span>';
+            }
+            container.innerHTML = htmlIcono;
+        }
+
+        function actualizarProgreso() {
+            const progreso = (preguntaActual / 9) * 100;
+            document.getElementById('progress-bar').style.width = `${progreso}%`;
+            const dots = document.getElementById('dots-container').children;
+            for(let i = 0; i < 10; i++) {
+                dots[i].className = 'dot';
+                if (i < preguntaActual) dots[i].classList.add('passed');
+                if (i === preguntaActual) dots[i].classList.add('active');
+            }
+        }
+
+        function mostrarPregunta() {
+            clearInterval(timerInterval);
+            if (preguntaActual === 0) generarEventosDelNivel(nivelActual);
+
+            const niv = niveles[nivelActual]; const p = niv.p[preguntaActual];
+            document.getElementById('ind-nivel').innerText = niv.nombre;
+            document.getElementById('cont-pregunta').innerText = `RETO ${preguntaActual + 1} de 10`;
+            actualizarIconoNivel(nivelActual);
+            document.getElementById('texto-pregunta').innerText = p.q;
+            
+            actualizarProgreso();
+
+            let indices = [0, 1, 2, 3]; indices.sort(() => Math.random() - 0.5);
+            const cont = document.getElementById('contenedor-opciones'); cont.innerHTML = '';
+            let tOpc = ""; const letras = ["A", "B", "C", "D"];
+
+            indices.forEach((idx, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-opcion'; btn.innerText = p.a[idx];
+                btn.onclick = () => verificarRespuesta(idx);
+                cont.appendChild(btn);
+                tOpc += ` Opción ${letras[i]}: ${p.a[idx]}.`;
+            });
+
+            const eventoActivo = eventosDelNivel[preguntaActual];
+            const hasH = (eventoActivo === 'policia');
+            const hasW = (eventoActivo === 'ruleta');
+
+            document.getElementById('ciber-policia-container').style.display = hasH ? 'block' : 'none';
+            document.getElementById('btn-ruleta-container').style.display = hasW ? 'block' : 'none';
+
+            let msg = `${equipos[turnoEquipo].nombre}: ${p.q}`;
+            hablar(msg);
+
+            iniciarTimer();
+        }
+
+        function iniciarTimer() {
+            const checkTime = document.getElementById('check-tiempo').checked;
+            const containerBox = document.getElementById('timer-container-box');
+            if(!checkTime) { containerBox.style.display = 'none'; return; }
+            containerBox.style.display = 'block';
+            timeLeft = 30; 
+            const bar = document.getElementById('timer-bar'); bar.style.width = "100%";
+            timerInterval = setInterval(() => {
+                timeLeft--; bar.style.width = (timeLeft / 30 * 100) + "%";
+                if(timeLeft <= 0) { clearInterval(timerInterval); verificarRespuesta(-1); }
+            }, 1000);
+        }
+
+        function verificarRespuesta(idx) {
+            clearInterval(timerInterval); window.speechSynthesis.cancel();
+            const p = niveles[nivelActual].p[preguntaActual];
+            if(idx === p.c) {
+                playSfx('acierto'); equipos[turnoEquipo].pts += 100;
+                document.getElementById('puntos-flow-gold').style.display = 'block'; setTimeout(()=>document.getElementById('puntos-flow-gold').style.display='none',2000);
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.7 } });
+            } else {
+                playSfx('error'); equipos[turnoEquipo].pts = Math.max(0, equipos[turnoEquipo].pts - 50);
+                document.getElementById('puntos-flow-error').style.display = 'block'; setTimeout(()=>document.getElementById('puntos-flow-error').style.display='none',2000);
+            }
+            setTimeout(() => {
+                preguntaActual++;
+                if(preguntaActual >= 10) {
+                    preguntaActual = 0; nivelActual++;
+                    if(nivelActual < niveles.length) { 
+                        document.getElementById('screen-juego').classList.remove('active'); 
+                        document.getElementById('screen-transicion').classList.add('active'); 
+                        document.getElementById('nombre-siguiente-nivel').innerText = niveles[nivelActual].nombre; 
+                        hablar("¡Sala superada! Siguiente bloque: " + niveles[nivelActual].nombre);
+                    }
+                    else { mostrarRankingFinal(); }
+                } else { turnoEquipo = (turnoEquipo + 1) % numEquipos; actualizarMarcadores(); mostrarPregunta(); }
+            }, 2000);
+        }
+
+        function continuarSiguienteNivel() { 
+            document.getElementById('screen-transicion').classList.remove('active'); 
+            document.getElementById('screen-juego').classList.add('active'); 
+            turnoEquipo = (turnoEquipo + 1) % numEquipos; 
+            actualizarMarcadores(); 
+            mostrarPregunta(); 
+        }
+
+        function actualizarMarcadores() {
+            const cont = document.getElementById('contenedor-marcadores'); cont.innerHTML = '';
+            equipos.forEach((eq, i) => {
+                const div = document.createElement('div');
+                div.className = `marcador-eq ${i === turnoEquipo ? 'marcador-activo' : ''}`;
+                div.style.backgroundColor = eq.color;
+                div.innerHTML = `<div style="font-family:'Creepster'; font-size:1rem; letter-spacing:1px;">${eq.nombre}</div><div style="font-size:1.2rem; font-weight:900;">⭐ ${eq.pts}</div>`;
+                cont.appendChild(div);
+            });
+        }
+
+        function hablar(t) { 
+            window.speechSynthesis.cancel(); 
+            const u = new SpeechSynthesisUtterance(t); 
+            u.lang='es-ES'; u.rate = 0.95; 
+            window.speechSynthesis.speak(u); 
+        }
+        
+        function playSfx(type) {
+            const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
+            osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+            if (type === 'acierto') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, now); osc.frequency.setValueAtTime(659.25, now + 0.1); osc.frequency.setValueAtTime(783.99, now + 0.2);
+                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05); gainNode.gain.linearRampToValueAtTime(0, now + 0.4);
+                osc.start(now); osc.stop(now + 0.4);
+            } else if (type === 'error') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(250, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
+                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05); gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'magic') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(300, now); osc.frequency.linearRampToValueAtTime(900, now + 0.5);
+                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.2, now + 0.2); gainNode.gain.linearRampToValueAtTime(0, now + 0.5);
+                osc.start(now); osc.stop(now + 0.5);
+            }
+        }
+
+        function abrirCiberPolicia() { 
+            clearInterval(timerInterval); window.speechSynthesis.cancel(); 
+            document.getElementById('ciber-policia-container').style.display = 'none';
+            document.getElementById('modal-ciberpolicia').style.display = 'flex';
+            playSfx('magic');
+            
+            let premioObj = premiosCiberPolicia.pop();
+            if (premioObj.p === "intercambio") {
+                document.getElementById('ciberpolicia-texto').innerText = premioObj.msg;
+                document.getElementById('btn-cerrar-policia').style.display = 'none';
+                hablar(premioObj.msg); prepararIntercambioPolicia();
+            } else {
+                equipos[turnoEquipo].pts += premioObj.p;
+                document.getElementById('ciberpolicia-texto').innerText = premioObj.msg;
+                document.getElementById('btn-cerrar-policia').style.display = 'block';
+                document.getElementById('intercambio-equipos-policia').style.display = 'none';
+                actualizarMarcadores(); hablar(premioObj.msg);
+            }
+        }
+
+        function prepararIntercambioPolicia() {
+            const area = document.getElementById('intercambio-equipos-policia'); const lista = document.getElementById('lista-intercambio-policia');
+            area.style.display = 'block'; lista.innerHTML = '';
+            equipos.forEach((eq, i) => {
+                if(i !== turnoEquipo) {
+                    const btn = document.createElement('button'); btn.className = 'btn-accion'; btn.style.fontSize = '1rem'; btn.style.padding = '8px 15px';
+                    btn.innerText = `Con ${eq.nombre} (${eq.pts} pts)`; btn.onclick = () => ejecutarIntercambioPolicia(i, eq.nombre);
+                    lista.appendChild(btn);
+                }
+            });
+            if(numEquipos < 2) { 
+                document.getElementById('ciberpolicia-texto').innerText = "Modo individual activo. Sin intercambio."; 
+                area.style.display = 'none'; document.getElementById('btn-cerrar-policia').style.display = 'block';
+            }
+        }
+
+        function ejecutarIntercambioPolicia(idxTarget, nombreTarget) {
+            playSfx('magic'); let temp = equipos[turnoEquipo].pts; equipos[turnoEquipo].pts = equipos[idxTarget].pts; equipos[idxTarget].pts = temp;
+            document.getElementById('intercambio-equipos-policia').style.display = 'none';
+            let finalMsg = `Hechizo completado con ${nombreTarget}. ¡Seguimos explorando la Mansión Addams!`;
+            document.getElementById('ciberpolicia-texto').innerText = finalMsg; hablar(finalMsg);
+            actualizarMarcadores(); document.getElementById('btn-cerrar-policia').style.display = 'block';
+        }
+
+        function cerrarCiberPolicia() { document.getElementById('modal-ciberpolicia').style.display = 'none'; iniciarTimer(); }
+
+        function abrirModalRuleta() { 
+            clearInterval(timerInterval); window.speechSynthesis.cancel(); 
+            document.getElementById('btn-ruleta-container').style.display = 'none'; 
+            document.getElementById('modal-ruleta').style.display = 'flex'; 
+            document.getElementById('btn-tirar-ruleta').style.display = 'block'; 
+            document.getElementById('btn-cerrar-ruleta').style.display = 'none';
+            document.getElementById('intercambio-equipos-ruleta').style.display = 'none';
+            document.getElementById('ruleta-texto').innerText = "¡Gira la ruleta para conseguir pócimas o puntos macabros!";
+            hablar("¡Gira la ruleta para conseguir pócimas o puntos macabros!");
+        }
+
+        function girarRuleta() {
+            const giro = 3600 + Math.floor(Math.random()*360); 
+            document.getElementById('ruleta-fisica').style.transform = `rotate(${giro}deg)`;
+            document.getElementById('btn-tirar-ruleta').style.display = 'none';
+            document.getElementById('ruleta-texto').innerText = "¡Lanzando el hechizo...";
+            setTimeout(() => {
+                const premioObj = premiosRuleta[Math.floor(Math.random() * premiosRuleta.length)];
+                if (premioObj.p === "intercambio") {
+                    playSfx('magic'); document.getElementById('ruleta-texto').innerText = premioObj.msg;
+                    hablar(premioObj.msg); prepararIntercambioRuleta();
+                } else {
+                    if(premioObj.p > 0) playSfx('acierto'); else playSfx('error');
+                    equipos[turnoEquipo].pts += premioObj.p; if(equipos[turnoEquipo].pts < 0) equipos[turnoEquipo].pts = 0; 
+                    document.getElementById('ruleta-texto').innerText = premioObj.msg;
+                    actualizarMarcadores(); hablar(premioObj.msg);
+                    document.getElementById('btn-cerrar-ruleta').style.display = 'block';
+                }
+            }, 3000);
+        }
+
+        function prepararIntercambioRuleta() {
+            const area = document.getElementById('intercambio-equipos-ruleta'); const lista = document.getElementById('lista-intercambio-ruleta');
+            area.style.display = 'block'; lista.innerHTML = '';
+            equipos.forEach((eq, i) => {
+                if(i !== turnoEquipo) {
+                    const btn = document.createElement('button'); btn.className = 'btn-accion'; btn.style.fontSize = '1rem'; btn.style.padding = '8px 15px';
+                    btn.innerText = `Con ${eq.nombre} (${eq.pts} pts)`; btn.onclick = () => ejecutarIntercambioRuleta(i, eq.nombre);
+                    lista.appendChild(btn);
+                }
+            });
+            if(numEquipos < 2) { 
+                document.getElementById('ruleta-texto').innerText = "Modo individual activo. Sin intercambio."; 
+                area.style.display = 'none'; document.getElementById('btn-cerrar-ruleta').style.display = 'block';
+            }
+        }
+
+        function ejecutarIntercambioRuleta(idxTarget, nombreTarget) {
+            playSfx('magic'); let temp = equipos[turnoEquipo].pts; equipos[turnoEquipo].pts = equipos[idxTarget].pts; equipos[idxTarget].pts = temp;
+            document.getElementById('intercambio-equipos-ruleta').style.display = 'none';
+            let finalMsg = `Puntos intercambiados con ${nombreTarget}. ¡Trabajando en equipo en la Mansión Addams!`;
+            document.getElementById('ruleta-texto').innerText = finalMsg; hablar(finalMsg);
+            actualizarMarcadores(); document.getElementById('btn-cerrar-ruleta').style.display = 'block';
+        }
+
+        function cerrarRuleta() { document.getElementById('modal-ruleta').style.display = 'none'; iniciarTimer(); }
+
+        function mostrarRankingFinal() {
+            document.getElementById('screen-juego').classList.remove('active'); 
+            document.getElementById('screen-final').classList.add('active');
+            const cont = document.getElementById('contenedor-ranking'); cont.innerHTML = '';
+            const orden = [...equipos].sort((a,b) => b.pts - a.pts);
+            const medallas = ["🥇", "🥈", "🥉", "4º", "5º", "6º"];
+            orden.forEach((eq, i) => {
+                const fila = document.createElement('div');
+                fila.className = `rank-fila ${i===0?'rank-1':''}`; fila.style.borderLeftColor = eq.color;
+                fila.innerHTML = `<div>${medallas[i]} ${eq.nombre}</div><div>⭐ ${eq.pts} pts</div>`;
+                cont.appendChild(fila);
+            });
+            confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+            hablar("¡Misión cumplida! Felicidades por completar el desafío educativo de La Familia Addams.");
+        }
+
+        function mostrarDiploma() {
+            window.speechSynthesis.cancel();
+            document.getElementById('screen-final').classList.remove('active');
+            document.getElementById('screen-diploma').classList.add('active');
+            confetti({ particleCount: 300, spread: 120, origin: { y: 0.5 } });
+            hablar("¡Enhorabuena! Habéis demostrado conocer a la perfección la historia de La Familia Addams, comprendiendo el valor del respeto a la diversidad y el trabajo en equipo.");
+        }
+    </script>
+</body>
+</html>

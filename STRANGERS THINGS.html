@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STRANGER THINGS - DESAFÍO DEL MUNDO DEL REVÉS / PRIMARIA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-principal: #050005;
+            --bg-panel: #120310;
+            --rojo-neon: #ff0033;
+            --azul-oscuro: #0a1128;
+            --gris-ceniza: #a0a0a0;
+            --verde-electrico: #00ff66;
+            --amarillo-retro: #ffcc00;
+            --texto-claro: #ffffff;
+            --eq1: #ff0033; --eq2: #00e5ff; --eq3: #00ff66; --eq4: #ffcc00; --eq5: #9d00ff; --eq6: #ff007f;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: radial-gradient(circle at center, #260318 0%, #0d010b 60%, #000000 100%);
+            background-attachment: fixed;
+            color: var(--texto-claro);
+            margin: 0; padding: 0; overflow-x: hidden;
+            display: flex; flex-direction: column; min-height: 100vh; user-select: none;
+        }
+
+        .ventana-ciber {
+            border: 3px solid var(--rojo-neon);
+            background: rgba(18, 3, 16, 0.95);
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 0 25px rgba(255, 0, 51, 0.5), inset 0 0 15px rgba(0, 0, 0, 0.8);
+            max-width: 850px;
+            width: 90%;
+            margin: 20px auto;
+            position: relative;
+        }
+
+        .badge-lateral {
+            position: absolute;
+            padding: 8px 15px;
+            font-family: 'Creepster', cursive;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.9);
+            z-index: 10;
+            letter-spacing: 1px;
+        }
+        .badge-tutoria { background: var(--azul-oscuro); color: var(--texto-claro); top: -15px; left: 15px; border: 1px solid var(--rojo-neon); }
+        .badge-primaria { background: var(--rojo-neon); color: #fff; top: -15px; right: 15px; font-weight: 900; }
+
+        .screen { display: none; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; padding: 20px; text-align: center; animation: fadeIn 0.5s ease-out; }
+        .screen.active { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+
+        h1.titulo-juego {
+            font-family: 'Creepster', cursive; font-size: clamp(2rem, 5.5vw, 3.5rem);
+            color: var(--rojo-neon); letter-spacing: 2px; line-height: 1.1;
+            text-shadow: 0 0 15px rgba(255, 0, 51, 0.8), 3px 3px 0 #000;
+            margin: 15px 0;
+        }
+
+        .selector-equipos { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 15px 0; }
+        .btn-jug {
+            width: 55px; height: 55px; border-radius: 12px; border: 2px solid var(--rojo-neon);
+            font-size: 1.5rem; font-family: 'Creepster', cursive; cursor: pointer; background: var(--bg-panel); color: white;
+            transition: 0.2s;
+        }
+        .btn-jug.seleccionado { background: var(--rojo-neon); color: #fff; font-weight: 900; transform: scale(1.1); box-shadow: 0 0 15px var(--rojo-neon); }
+
+        .game-header {
+            display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 5px;
+            font-family: 'Creepster', cursive; font-size: 1.2rem; letter-spacing: 1px;
+        }
+        .nivel-text { color: var(--rojo-neon); }
+        .pregunta-text { color: #aaa; font-family: 'Nunito', sans-serif; font-size: 0.9rem; }
+
+        .progress-container { width: 100%; height: 8px; background: #000; border-radius: 4px; margin-top: 5px; overflow: hidden; border: 1px solid var(--rojo-neon); }
+        .progress-bar { height: 100%; background: var(--rojo-neon); width: 0%; transition: width 0.3s; box-shadow: 0 0 8px var(--rojo-neon); }
+        .dots-container { display: flex; justify-content: space-between; margin: 12px 0; padding: 0 5px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: #333; transition: 0.3s; }
+        .dot.active { background: var(--amarillo-retro); box-shadow: 0 0 10px var(--amarillo-retro); transform: scale(1.3); }
+        .dot.passed { background: var(--verde-electrico); }
+
+        .timer-container {
+            width: 100%; background: #000; height: 20px; border-radius: 10px; margin-bottom: 10px; overflow: hidden; border: 2px solid var(--rojo-neon); position: relative;
+        }
+        #timer-bar { height: 100%; background: linear-gradient(90deg, var(--verde-electrico), var(--amarillo-retro), var(--rojo-neon)); transition: width 1s linear; }
+
+        #icono-nivel-container { font-size: 3.5rem; margin: 10px 0; min-height: 70px; display: flex; align-items: center; justify-content: center; gap: 15px; }
+        .emoji-grande { animation: pulse 2s infinite; display: inline-block; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+        .btn-accion {
+            padding: 12px 35px; font-size: 1.4rem; font-family: 'Creepster', cursive; letter-spacing: 1px; border-radius: 30px;
+            border: 2px solid var(--rojo-neon); background: var(--azul-oscuro); color: white; cursor: pointer;
+            box-shadow: 0 0 15px rgba(255, 0, 51, 0.5); transition: all 0.2s; margin-top: 15px; text-transform: uppercase;
+        }
+        .btn-accion:hover { background: var(--rojo-neon); color: #fff; box-shadow: 0 0 20px var(--rojo-neon); }
+
+        .btn-audio {
+            background: rgba(255, 0, 51, 0.2); border: 2px solid var(--rojo-neon); color: white;
+            padding: 8px 18px; border-radius: 20px; cursor: pointer; font-family: 'Creepster', cursive;
+            font-size: 1.1rem; margin-bottom: 15px; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; letter-spacing: 1px;
+        }
+        .btn-audio:hover { background: var(--rojo-neon); color: #fff; }
+
+        .caja-explicativa {
+            font-size: 1.25rem; line-height: 1.6; text-align: left; padding: 22px;
+            background: rgba(0,0,0,0.75); border-radius: 15px; margin-bottom: 20px;
+            border: 1px solid var(--rojo-neon); box-shadow: inset 0 0 10px rgba(0,0,0,0.9);
+        }
+        .caja-explicativa ul { margin: 10px 0 0 0; padding-left: 25px; }
+        .caja-explicativa li { margin-bottom: 10px; }
+
+        .btn-evento-flotante { position: absolute; top: -25px; width: 60px; height: 60px; cursor: pointer; z-index: 10; border: none; background: transparent; }
+        #ciber-policia-container { left: 15px; font-size: 3.8rem; filter: drop-shadow(0 0 10px var(--rojo-neon)); }
+        #btn-ruleta-container { right: 15px; font-size: 3.5rem; filter: drop-shadow(0 0 10px var(--amarillo-retro)); }
+
+        .panel-pregunta { background: var(--bg-panel); color: white; width: 95%; max-width: 800px; border-radius: 20px; padding: 25px; border: 2px solid var(--rojo-neon); position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.9); }
+        #contenedor-opciones { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .btn-opcion { background: #000; border: 1px solid #333; padding: 15px; font-size: 1rem; color: white; font-weight: 700; border-radius: 10px; cursor: pointer; text-align: left; transition: 0.2s; }
+        .btn-opcion:hover { border-color: var(--rojo-neon); background: #1a0515; }
+        .btn-opcion.correcta { background: var(--verde-electrico) !important; color: #000; font-weight: 900; }
+        .btn-opcion.incorrecta { background: var(--rojo-neon) !important; color: white; }
+
+        #contenedor-marcadores { display: flex; gap: 10px; width: 100%; justify-content: center; flex-wrap: wrap; margin-bottom: 15px; }
+        .marcador-eq { width: 110px; padding: 8px; border-radius: 10px; background: #120310; opacity: 0.6; border: 2px solid transparent; }
+        .marcador-eq.marcador-activo { opacity: 1; transform: scale(1.05); border-color: var(--rojo-neon); box-shadow: 0 0 10px var(--rojo-neon); }
+
+        .ruleta-wrapper { position: relative; width: 220px; height: 220px; margin: 15px auto; border-radius: 50%; border: 6px solid var(--rojo-neon); overflow: hidden; }
+        .ruleta-bg { width: 100%; height: 100%; background: conic-gradient(#ff0033 0% 20%, #00e5ff 20% 40%, #00ff66 40% 60%, #ffcc00 60% 80%, #9d00ff 80% 100%); transition: transform 3s cubic-bezier(0.1, 0.8, 0.1, 1); }
+        .ruleta-pointer { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 20px solid var(--amarillo-retro); z-index: 5; }
+        
+        .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.92); z-index:10000; align-items:center; justify-content:center; }
+        .modal-content { background: var(--bg-panel); color: white; padding: 25px; border-radius: 20px; text-align: center; max-width: 420px; width: 90%; border: 2px solid var(--rojo-neon); box-shadow: 0 0 25px var(--rojo-neon); }
+
+        .puntos-flow { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Creepster', cursive; font-size: 4rem; z-index: 9999; pointer-events: none; animation: puntosFlowUp 2s ease-out forwards; display: none; }
+        #puntos-flow-gold { color: var(--amarillo-retro); text-shadow: 0 0 20px var(--amarillo-retro); }
+        #puntos-flow-error { color: var(--rojo-neon); text-shadow: 0 0 20px var(--rojo-neon); }
+        @keyframes puntosFlowUp { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } 20% { opacity: 1; transform: translate(-50%, -60%) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -200px) scale(0.8); } }
+        
+        .rank-fila { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; margin: 8px 0; border-radius: 10px; background: rgba(255,255,255,0.05); border-left: 8px solid transparent; font-family: 'Creepster', cursive; font-size: 1.4rem; letter-spacing: 1px; }
+        .rank-1 { background: rgba(255, 0, 51, 0.3); border: 1px solid var(--rojo-neon); transform: scale(1.03); }
+
+        .diploma-container { background: #000; color: white; border: 4px solid var(--rojo-neon); padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 0 40px rgba(255, 0, 51, 0.6); max-width: 800px; }
+
+        .autor-credito {
+            margin-top: 15px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--gris-ceniza);
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- EFECTOS DE PUNTOS -->
+    <div id="puntos-flow-gold" class="puntos-flow">+100</div>
+    <div id="puntos-flow-error" class="puntos-flow">-50</div>
+
+    <!-- PANTALLA INICIAL -->
+    <div id="screen-inicio" class="screen active">
+        <div class="ventana-ciber">
+            <div class="badge-lateral badge-tutoria">HAWKINS, INDIANA</div>
+            <div class="badge-lateral badge-primaria">EDUCACIÓN PRIMARIA</div>
+            <h1 class="titulo-juego">EL MUNDO DEL REVÉS 🚲🧇</h1>
+            <p style="font-weight: 700; color: var(--rojo-neon); margin: 5px 0;">Junta de Andalucía - Cuestionario Interactivo sobre la Historia, Personajes y Valores de Stranger Things</p>
+            
+            <div style="font-size: 4.5rem; margin: 20px 0; display: flex; justify-content: center; gap: 20px;">
+                <span class="emoji-grande">🚲</span>
+                <span class="emoji-grande" style="animation-delay: 0.3s;">🧇</span>
+                <span class="emoji-grande" style="animation-delay: 0.6s;">👾</span>
+            </div>
+            
+            <p style="font-size: 1.1rem; font-weight: 700;">Selecciona número de equipos:</p>
+            <div class="selector-equipos">
+                <button class="btn-jug" onclick="seleccionarJugadores(1)">1</button>
+                <button class="btn-jug" onclick="seleccionarJugadores(2)">2</button>
+                <button class="btn-jug seleccionado" onclick="seleccionarJugadores(3)">3</button>
+                <button class="btn-jug" onclick="seleccionarJugadores(4)">4</button>
+                <button class="btn-jug" onclick="seleccionarJugadores(5)">5</button>
+                <button class="btn-jug" onclick="seleccionarJugadores(6)">6</button>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.6); padding: 12px; border-radius: 10px; margin: 15px 0; border: 1px solid var(--rojo-neon);">
+                <label style="cursor: pointer; font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <input type="checkbox" id="check-tiempo" checked style="transform: scale(1.4);"> Temporizador Walkie-Talkie (30 seg por reto)
+                </label>
+            </div>
+
+            <button class="btn-accion" onclick="irACiberconvivencia()">¡ENTRAR EN HAWKINS!</button>
+            <div class="autor-credito">Aplicación elaborada por el maestro Carlos Garrido</div>
+        </div>
+    </div>
+
+    <!-- PANTALLA EXPLICATIVA 1: CREADORES Y DÉCADA DE LOS 80 -->
+    <div id="screen-ciberconvivencia" class="screen">
+        <div class="ventana-ciber">
+            <h1 style="color: var(--rojo-neon);">¿CÓMO NACIÓ STRANGER THINGS? 📺📼</h1>
+            <button class="btn-audio" onclick="leerCiberconvivencia()">🔊 Escuchar Explicación</button>
+            
+            <div class="caja-explicativa">
+                <p style="margin-top:0;"><strong>Stranger Things</strong> es una famosa serie creada por los hermanos <strong>Matt y Ross Duffer</strong> (los Hermanos Duffer) estrenada en 2016.</p>
+                <p>Curiosidades de su ambientación y universo:</p>
+                <ul>
+                    <li><strong>Homenaje a los años 80:</strong> Está ambientada en el pueblo ficticio de Hawkins (Indiana) durante los años 80, repleta de bicicletas, salas de juegos arcade y música synthwave.</li>
+                    <li><strong>El Mundo del Revés (Upside Down):</strong> Es una dimensión paralela y oscura que existe justo debajo de nuestro mundo, cubierta de esporas y criaturas misteriosas.</li>
+                    <li><strong>Ciencia ficción y misterio:</strong> Mezcla experimentos científicos, superpoderes e investigación en equipo como en los juegos de rol clásicos.</li>
+                </ul>
+            </div>
+            
+            <button class="btn-accion" onclick="irANetiqueta()">SIGUIENTE: VALORES Y AMISTAD ➔</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA EXPLICATIVA 2: LEALTAD Y CONVIVENCIA -->
+    <div id="screen-netiqueta" class="screen">
+        <div class="ventana-ciber">
+            <h1 style="color: var(--amarillo-retro);">"LOS AMIGOS NO MIENTEN" 📻🤝</h1>
+            <button class="btn-audio" onclick="leerNetiqueta()">🔊 Escuchar Explicación</button>
+
+            <div class="caja-explicativa">
+                <p style="margin-top:0;">Más allá de sus monstruos y fenómenos paranormales, la serie nos transmite valiosas lecciones para la vida escolar:</p>
+                <p>Grandes lecciones del grupo de Hawkins:</p>
+                <ul>
+                    <li><strong>La regla de oro de la amistad:</strong> <em>"Friends don't lie"</em> (Los amigos no mienten), destacando la sinceridad y la confianza absoluta.</li>
+                    <li><strong>Aceptar la diferencia:</strong> Ce (Eleven) es diferente a los demás, pero el grupo la acoge, la protege y aprende a valorar su gran corazón.</li>
+                    <li><strong>El trabajo en equipo nos salva:</strong> Ningún personaje vence solo a las amenazas; la unión de niños, adolescentes y adultos es la clave de su éxito.</li>
+                </ul>
+            </div>
+
+            <button class="btn-accion" onclick="irAHistoria()">¡IR A LA HISTORIA DE LA MISIÓN!</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA HISTORIA E INTRODUCCIÓN -->
+    <div id="screen-historia" class="screen">
+        <div class="ventana-ciber">
+            <h1 style="color: var(--amarillo-retro);">¡ATENCIÓN CLUB DE D&D DE HAWKINS! 🎲</h1>
+            <div class="caja-explicativa">
+                <p>¡Atención, alumnos de Primaria! Los walkie-talkies están captando una señal misteriosa desde el Mundo del Revés. Necesitamos vuestro ingenio para resolver el gran desafío de Hawkins.</p>
+                <p>A través de estos 40 retos divididos en 4 bloques exploraremos los <strong>creadores y la cultura de los 80</strong>, los <strong>personajes inolvidables</strong>, los <strong>misterios del laboratorio</strong> y los <strong>valores de lealtad y trabajo en equipo</strong>.</p>
+                <p>Recordad: ¡El mejor equipo no es solo el que acumula más puntos, sino el que colabora con respeto, sincronicidad y compañerismo!</p>
+            </div>
+            <button class="btn-accion" onclick="empezarJuego()">¡ENCENDER EL WALKIE-TALKIE!</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE JUEGO -->
+    <div id="screen-juego" class="screen">
+        <div id="contenedor-marcadores"></div>
+        <div class="panel-pregunta">
+            <button id="ciber-policia-container" class="btn-evento-flotante" onclick="abrirCiberPolicia()">🚲</button>
+            <button id="btn-ruleta-container" class="btn-evento-flotante" onclick="abrirModalRuleta()">🎡</button>
+            
+            <div class="game-header">
+                <span id="ind-nivel" class="nivel-text">BLOQUE 1</span>
+                <span id="cont-pregunta" class="pregunta-text">RETO 1 de 10</span>
+            </div>
+            
+            <div class="progress-container"><div id="progress-bar" class="progress-bar"></div></div>
+            <div id="dots-container" class="dots-container">
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            </div>
+
+            <div class="timer-container" id="timer-container-box"><div id="timer-bar"></div></div>
+            <div id="icono-nivel-container"></div>
+            <div id="texto-pregunta" style="font-size: 1.4rem; font-weight: 800; margin: 10px 0;"></div>
+            <div id="contenedor-opciones"></div>
+        </div>
+    </div>
+
+    <!-- PANTALLA TRANSICIÓN ENTRE BLOQUES -->
+    <div id="screen-transicion" class="screen">
+        <div class="ventana-ciber">
+            <div style="font-size: 4rem;">⚡ 👾 ⚡</div>
+            <h1 style="color: var(--verde-electrico);">¡PORTAL CERRADO CON ÉXITO!</h1>
+            <p style="font-size: 1.3rem;">Siguiente rincón del misterio de Hawkins:</p>
+            <h2 id="nombre-siguiente-nivel" style="color: var(--rojo-neon); font-family: 'Creepster'; font-size: 2rem;"></h2>
+            <div style="font-size: 2.5rem; margin: 15px;">📻 🚲 🧇</div>
+            <button class="btn-accion" onclick="continuarSiguienteNivel()">¡AVANZAR AL SIGUIENTE BLOQUE!</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA FINAL - RANKING -->
+    <div id="screen-final" class="screen">
+        <div class="ventana-ciber">
+            <h1 class="titulo-juego">CLASIFICACIÓN DEL CLUB DE HAWKINS</h1>
+            <div style="font-size: 3.5rem; margin-bottom: 15px;">🏆🚲</div>
+            <div id="contenedor-ranking" style="width: 100%; text-align: left;"></div>
+            <button class="btn-accion" style="margin-top:25px; background: var(--amarillo-retro); color: #000;" onclick="mostrarDiploma()">OBTENER DIPLOMA DE PROTECTOR DE HAWKINS 📜</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA DIPLOMA / CERTIFICADO -->
+    <div id="screen-diploma" class="screen">
+        <div class="diploma-container">
+            <div style="font-size: 5rem; margin-bottom: 10px;">🏅🚲🧇</div>
+            <h1 style="color: var(--rojo-neon); font-family: 'Creepster'; font-size: 2.8rem; margin: 10px 0;">DIPLOMA DE PROTECTOR DE HAWKINS</h1>
+            <h2 style="color: var(--amarillo-retro); font-size: 1.8rem; margin: 10px 0;">EDUCACIÓN PRIMARIA - MUNDO DEL REVÉS</h2>
+            <p style="font-size: 1.3rem; line-height: 1.6; padding: 15px; border-radius: 12px; background: rgba(255,255,255,0.05); margin: 20px; border: 1px solid var(--rojo-neon);">
+                Habéis demostrado conocer a la perfección el universo de <strong style="color: var(--rojo-neon);">Stranger Things</strong>, comprendiendo el valor de la lealtad, el respeto a la diferencia y el poder del trabajo en equipo.<br><br>
+                ¡Enhorabuena, el Club de Hawkins os nombra miembros honorarios por siempre!
+            </p>
+            <button class="btn-accion" onclick="location.reload()">REINICIAR DESAFÍO</button>
+        </div>
+    </div>
+
+    <!-- MODAL JIM HOPPER / TUTOR -->
+    <div id="modal-ciberpolicia" class="modal-overlay">
+        <div class="modal-content">
+            <h2 style="color: var(--rojo-neon); font-family: 'Creepster'; font-size: 2rem;">📻 MENSAJE DE JIM HOPPER 📻</h2>
+            <p id="ciberpolicia-texto" style="font-size:1.4rem; font-weight: 700;"></p>
+            
+            <div id="intercambio-equipos-policia" style="display:none; margin-bottom: 15px;">
+                <p style="font-weight:bold;">Elige el equipo para realizar el intercambio de walkie-talkies:</p>
+                <div id="lista-intercambio-policia" style="display:flex; flex-direction:column; gap:5px;"></div>
+            </div>
+
+            <button id="btn-cerrar-policia" class="btn-accion" onclick="cerrarCiberPolicia()" style="margin: 0 auto; display: block;">¡ENTENDIDO!</button>
+        </div>
+    </div>
+    
+    <!-- MODAL RULETA MÁGICA -->
+    <div id="modal-ruleta" class="modal-overlay">
+        <div class="modal-content">
+            <h2 style="color: var(--amarillo-retro); font-family: 'Creepster'; font-size: 2rem;">🎡 RULETA RETRO DE LOS 80 🎡</h2>
+            <div class="ruleta-wrapper"><div class="ruleta-pointer"></div><div id="ruleta-fisica" class="ruleta-bg"></div></div>
+            <p id="ruleta-texto" style="font-size:1.3rem; font-weight: 700; min-height: 50px;"></p>
+            
+            <div id="intercambio-equipos-ruleta" style="display:none; margin-bottom: 15px;">
+                <p style="font-weight:bold;">Elige el equipo para realizar el hechizo de intercambio:</p>
+                <div id="lista-intercambio-ruleta" style="display:flex; flex-direction:column; gap:5px;"></div>
+            </div>
+
+            <button id="btn-tirar-ruleta" class="btn-accion" onclick="girarRuleta()" style="margin: 0 auto; display: block;">¡GIRAR RULETA!</button>
+            <button id="btn-cerrar-ruleta" class="btn-accion" onclick="cerrarRuleta()" style="display:none; margin: 0 auto;">¡ACEPTAR!</button>
+        </div>
+    </div>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let numEquipos = 3, equipos = [], nivelActual = 0, preguntaActual = 0, turnoEquipo = 0;
+        let timerInterval, timeLeft;
+        let eventosDelNivel = [];
+
+        // EVENTOS DEL MENSAJE DE HOPPER
+        let premiosCiberPolicia = [
+            { p: 100, msg: "¡Ayudaste a Dustin a reparar la antena del Walkie-Talkie! +100 pts" },
+            { p: 200, msg: "¡Le compartiste una caja de gofres Eggo a Ce! +200 pts" },
+            { p: 300, msg: "¡Explicaste a tus amigos cómo funcionan los años 80 y los cassettes! +300 pts" },
+            { p: 400, msg: "¡Acompañaste a Mike a buscar pistas sin salirte del camino! +400 pts" },
+            { p: 500, msg: "¡Respetaste a un compañero nuevo de la clase como hicieron con Max! +500 pts" },
+            { p: 600, msg: "¡Recogiste los cables del laboratorio de ciencias del colegio! +600 pts" },
+            { p: 700, msg: "¡Escribiste un relato de misterio fantástico en clase de Lengua! +700 pts" },
+            { p: 800, msg: "¡Aceptaste a un amigo nuevo en tu grupo de juegos! +800 pts" },
+            { p: 900, msg: "¡Aprendiste el nombre de todos los miembros del grupo de Hawkins! +900 pts" },
+            { p: 1000, msg: "¡Eres un auténtico Guardián del Respeto y la Lealtad! +1000 pts" },
+            { p: "intercambio", msg: "¡Cambio de Frecuencia! Intercambia puntos con otro equipo." },
+            { p: "intercambio", msg: "¡Cambio de Frecuencia! Intercambia puntos con otro equipo." },
+            { p: "intercambio", msg: "¡Cambio de Frecuencia! Intercambia puntos con otro equipo." }
+        ];
+
+        // BANCO DE PREGUNTAS (4 BLOQUES TEMÁTICOS SOBRE STRANGER THINGS)
+        const niveles = [
+            { nombre: "BLOQUE 1: CREADORES Y AÑOS 80", p: [
+                { q: "¿Quiénes son los hermanos creadores y directores de la serie Stranger Things?", a: ["Los Hermanos Duffer (Matt y Ross).", "Los Hermanos Russo.", "Steven Spielberg y George Lucas.", "Los Hermanos Coen."], c: 0 },
+                { q: "¿En qué década del siglo XX está ambientada toda la historia de la serie?", a: ["En los años 80.", "En los años 50.", "En los años 2000.", "En los años 20."], c: 0 },
+                { q: "¿Cómo se llama el pueblo ficticio del estado de Indiana donde ocurren los hechos?", a: ["Hawkins.", "Springfield.", "Riverdale.", "Sunnydale."], c: 0 },
+                { q: "¿Qué juego de mesa de rol tradicional juegan los niños en el sótano de Mike?", a: ["Dungeons & Dragons (Dragones y Mazmorras).", "El Monopoly.", "El Ajedrez.", "El PARCHÍS."], c: 0 },
+                { q: "¿Qué medio de transporte usan los niños para desplazarse juntos por todo Hawkins?", a: ["Bicicletas.", "Monopatines voladores.", "Coches deportivos.", "Patinetes eléctricos."], c: 0 },
+                { q: "¿Cómo se llama la dimensión paralela, oscura y sombría que se conecta con Hawkins?", a: ["El Mundo del Revés (Upside Down).", "La Dimensión X.", "El Planeta Oscuro.", "La Galaxia Lejana."], c: 0 },
+                { q: "¿Qué aparato tecnológico de radio de corta distancia usan para comunicarse entre sus casas?", a: ["Walkie-talkies.", "Teléfonos móviles inteligentes.", "Relojes digitales con cámara.", "Ordenadores portátiles."], c: 0 },
+                { q: "¿En qué año se estrenó por primera vez la serie en la plataforma Netflix?", a: ["En 2016.", "En 2010.", "En 2020.", "En 2005."], c: 0 },
+                { q: "El valor pedagógico de conocer la ambientación de los años 80 radica en...", a: ["Comprender cómo jugaban, se comunicaban y convivían los niños antes de la llegada de internet.", "Aprender a romper aparatos viejos.", "Comprar cassettes rotos.", "No usar nunca la bicicleta."], c: 0 },
+                { q: "A pesar de la presencia de monstruos, el tema principal de la serie es...", a: ["El valor de la amistad, la lealtad familiar y el trabajo en equipo.", "Las carreras de coches veloces.", "Los concursos de cocina.", "Aprender artes marciales."], c: 0 }
+            ]},
+            { nombre: "BLOQUE 2: PERSONAJES DE HAWKINS", p: [
+                { q: "¿Cómo se llama la niña con poderes telequinéticos que escapó del laboratorio?", a: ["Eleven (Once / Ce).", "Max.", "Nancy.", "Robin."], c: 0 },
+                { q: "¿Cuál es la comida favorita de Eleven que descubre al llegar al mundo real?", a: ["Los gofres (Eggo waffles).", "Las hamburguesas con queso.", " Las pizzas de pepperoni.", "Los helados de fresa."], c: 0 },
+                { q: "¿Cómo se llama el niño que desaparece en el primer episodio dentro del Mundo del Revés?", a: ["Will Byers.", "Mike Wheeler.", "Dustin Henderson.", "Lucas Sinclair."], c: 0 },
+                { q: "¿Qué personaje es famoso por su gorra de camionero, su simpatía y su curiosidad por la ciencia?", a: ["Dustin Henderson.", "Steve Harrington.", "Jonathan Byers.", "Mike Wheeler."], c: 0 },
+                { q: "¿Cómo se llama el valiente jefe de policía de Hawkins que protege a Eleven como a una hija?", a: ["Jim Hopper.", "Bob Newby.", "Murray Bauman.", "Dr. Brenner."], c: 0 },
+                { q: "¿Cómo se llama la madre de Will que nunca se rindió y puso luces de Navidad en la pared para hablar con él?", a: ["Joyce Byers.", "Karen Wheeler.", "Robin Buckley.", "Nancy Wheeler."], c: 0 },
+                { q: "¿Qué niña experta en videojuegos de arcade y skate se une al grupo en la segunda temporada?", a: ["Max Mayfield (MadMax).", "Erica Sinclair.", "Nancy Wheeler.", "Suzie."], c: 0 },
+                { q: "¿Cómo se llama el joven de peinado icónico que pasa de ser un chico engreído a proteger a los niños con un bate?", a: ["Steve Harrington.", "Billy Hargrove.", "Eddie Munson.", "Jonathan Byers."], c: 0 },
+                { q: "¿Quién es la hermana pequeña de Lucas que destaca por ser súper inteligente y sarcástica?", a: ["Erica Sinclair.", "Suzie.", "Max.", "Holly."], c: 0 },
+                { q: "El personaje de Eleven nos enseña que las personas con capacidades diferentes...", a: ["Deben ser comprendidas, respetadas y valoradas por su gran corazón e inteligencia.", "Tienen que vivir solas sin amigos.", "No deben ir nunca a la escuela.", "Tienen que ocultar lo que sienten."], c: 0 }
+            ]},
+            { nombre: "BLOQUE 3: MISTERIOS, MÚSICA Y CRIATURAS", p: [
+                { q: "¿Qué nombre le ponen los niños al primer monstruo que aparece en la temporada 1, inspirado en D&D?", a: ["Demogorgon.", "Azotamentes (Mind Flayer).", "Vecna.", "Demodogo."], c: 0 },
+                { q: "¿Cómo se llaman las criaturas jóvenes en forma de reptil o perro que crecen desde renacuajos?", a: ["Demodogos (Demodogs).", "Demogorgones gigantes.", "Sombras voladoras.", "Gremolins."], c: 0 },
+                { q: "¿Qué monstruo gigante con forma de araña de sombra controla la mente desde el Mundo del Revés?", a: ["El Azotamentes (Mind Flayer).", "El Demogorgon.", "Vecna.", "El Dragón Rojo."], c: 0 },
+                { q: "¿Qué canción famosa de Kate Bush escucha Max para salvarse de las garras de Vecna?", a: ["'Running Up That Hill'.", " 'Master of Puppets'.", "'Should I Stay or Should I Go'.", "'Never Ending Story'."], c: 0 },
+                { q: "¿Qué canción del grupo The Clash escucha Will Byers con su hermano Jonathan para calmarse?", a: ["'Should I Stay or Should I Go'.", " 'Thriller'.", "'Beat It'.", "'Take on Me'."], c: 0 },
+                { q: "¿Cómo se llama la famosa heladería del centro comercial Starcourt donde trabajan Steve y Robin?", a: ["Scoops Ahoy.", "Waffle House.", "Ice Cream World.", "Hawkins Sweets."], c: 0 },
+                { q: "¿Qué canción cantan Dustin y su novia Suzie por walkie-talkie para conseguir la constante de Planck?", a: ["The NeverEnding Story (La historia interminable).", "Eye of the Tiger.", "Ghostbusters.", "Material Girl."], c: 0 },
+                { q: "¿Qué instrumento musical toca Eddie Munson en el Mundo del Revés para atraer a los murciélagos?", a: ["La guitarra eléctrica.", "El batería de jazz.", "El piano de cola.", "La flauta dulce."], c: 0 },
+                { q: "El uso del abecedario pintado en la pared con luces de Navidad demuestra que...", a: ["La creatividad y la imaginación nos ayudan a resolver problemas difíciles.", "Las luces de colores solo sirven en diciembre.", "No hace falta hablar para entenderse.", "Las casas viejas son peligrosas."], c: 0 },
+                { q: "En la serie, la música favorita de cada personaje funciona como...", a: ["Un refugio emocional que les da fuerza, recuerdos felices y conexión con sus seres queridos.", "Un ruido molesto que les impide pensar.", "Una forma de asustar a los vecinos.", "Un truco para vender cassettes."], c: 0 }
+            ]},
+            { nombre: "BLOQUE 4: LEALTAD, EMPATÍA Y TRABAJO EN EQUIPO", p: [
+                { q: "¿Cuál es la famosa frase que resume el compromiso de amistad entre Mike y su grupo?", a: ["'Los amigos no mienten' (Friends don't lie).", " 'El primero que llega gana'.", "'Sálvese quien pueda'.", "'Secretos para siempre'."], c: 0 },
+                { q: "¿Por qué el trabajo en equipo es indispensable para resolver los enigmas de Hawkins?", a: ["Porque cada miembro aporta habilidades únicas: ciencia, fuerza, empatía o valor.", "Porque así terminan antes para ver la televisión.", "Porque se lo exigen sus profesores de colegio.", "Porque les da miedo andar solos por la calle."], c: 0 },
+                { q: "Cuando un compañero nuevo llega a nuestra clase en el colegio, la lección de Hawkins es...", a: ["Acogerlo con amabilidad, incluirlo en los juegos y hacerle sentir parte del grupo.", "Ignorarlo hasta que aprenda nuestras normas.", "Burlarnos de su forma de hablar.", "No dejarle sentarse en nuestra mesa."], c: 0 },
+                { q: "Frente al acoso escolar (bullying) que sufren a veces los niños de Hawkins, la respuesta correcta es...", a: ["Apoyar a la víctima, no quedarse callado y pedir ayuda a maestros y adultos de confianza.", "Reírse del agresor para ser popular.", "Unirse al grupo que insulta.", "Decir que no es problema nuestro."], c: 0 },
+                { q: "La relación de protección entre Joyce y su hijo Will enseña el valor de...", a: ["La perseverancia, el amor incondicional y la fe en la familia.", "Rendirse a la primera dificultad.", "Dejar que los niños resuelvan todo solos.", "No escuchar las emociones de los demás."], c: 0 },
+                { q: "Si en un trabajo en equipo cometemos un error técnico o de lectura, la actitud adecuada es...", a: ["Reconocerlo con humildad, aprender del fallo y corregirlo juntos sin culpar a nadie.", "Echarle la culpa al compañero más tímido.", "Rendirse y abandonar la partida.", "Enfadarnos y dejar de hablar."], c: 0 },
+                { q: "La curiosidad científica de Dustin por los experimentos nos motiva en la escuela a...", a: ["Hacer preguntas, investigar en libros y disfrutar del aprendizaje continuo.", "Copiar las respuestas sin entenderlas.", "Pensar que las ciencias son aburridas.", "No hacer nunca los experimentos."], c: 0 },
+                { q: "El personaje de Bob Newby enseña que los verdaderos héroes son personas que...", a: ["Actúan con bondad, generosidad y valentía para ayudar a los demás sin buscar fama.", "Tienen superpoderes físicos gigantescos.", "Salen en las portadas de los periódicos.", "Tienen mucho dinero guardado."], c: 0 },
+                { q: "¿Qué valor ético ejercitamos al analizar el comportamiento solidario de los personajes?", a: ["Empatía, solidaridad, lealtad y sentido de la justicia.", "Egoísmo e individualismo.", "Indiferencia ante los problemas ajenos.", "Rivalidad agresiva entre amigos."], c: 0 },
+                { q: "En definitiva, el gran mensaje de Stranger Things para nuestro grupo de clase es que...", a: ["Juntos somos más fuertes y podemos superar cualquier 'Mundo del Revés' que se nos presente.", "Es mejor resolver los problemas solo sin pedir ayuda.", "Los monstruos de los cuentos existen de verdad.", "Las bicicletas son solo para el verano."], c: 0 }
+            ]}
+        ];
+
+        // PREMIOS DE LA RULETA RETRO DE LOS 80
+        const premiosRuleta = [
+            { p: 50, msg: "¡Encontraste una moneda de 25 centavos para la máquina de Arcade! +50 pts." },
+            { p: 100, msg: "¡Recibiste una señal clara por el Walkie-Talkie! +100 pts." },
+            { p: 150, msg: "¡Compartiste una caja de gofres Eggo calentitos! +150 pts." },
+            { p: 200, msg: "¡Reparaste la cadena de tu bicicleta de paseo! +200 pts." },
+            { p: 250, msg: "¡Encontraste un cassette con tu canción favorita de los 80! +250 pts." },
+            { p: 300, msg: "¡Dustin te enseñó un truco de física de su club de ciencia! +300 pts." },
+            { p: 350, msg: "¡Ce usó su energía telequinética para salvar tu jugada! +350 pts." },
+            { p: 400, msg: "¡Ganaste la partida del videojuego Dig Dug en el Arcade! +400 pts." },
+            { p: 450, msg: "¡Descifraste un código secreto transmitido por radio! +450 pts." },
+            { p: 500, msg: "¡Steve Harrington defendió a tu equipo en el pasillo! +500 pts." },
+            { p: 600, msg: "¡Gran banquete de helados en Scoops Ahoy! +600 pts." },
+            { p: 700, msg: "¡Pócima de la Sincronicidad y Amistad concedida! +700 pts." },
+            { p: 800, msg: "¡Demostración de lealtad absoluta en el Club de D&D! +800 pts." },
+            { p: 1000, msg: "¡SUPER HECHIZO DEL PROTECTOR DE HAWKINS! +1000 pts." },
+            { p: -50, msg: "Se le agotaron las pilas a tu Walkie-Talkie: -50 pts." },
+            { p: -100, msg: "Se te pinchó la rueda trasera de la bicicleta: -100 pts." },
+            { p: -150, msg: "Se enredó la cinta del cassette en el reproductor: -150 pts." },
+            { p: -200, msg: "Te despistaste con una sombra del Mundo del Revés: -200 pts." },
+            { p: "intercambio", msg: "¡Estrategia Retro! Intercambio de puntos. Elige con quién." },
+            { p: "intercambio", msg: "¡Estrategia Retro! Intercambio de puntos. Elige con quién." }
+        ];
+
+        function seleccionarJugadores(n) { 
+            numEquipos = n; 
+            document.querySelectorAll('.btn-jug').forEach((b, i) => b.classList.toggle('seleccionado', (i+1)===n)); 
+        }
+
+        // NAVEGACIÓN INICIAL DE PANTALLAS
+        function irACiberconvivencia() {
+            document.getElementById('screen-inicio').classList.remove('active');
+            document.getElementById('screen-ciberconvivencia').classList.add('active');
+            leerCiberconvivencia();
+        }
+
+        function leerCiberconvivencia() {
+            hablar("Stranger Things es una serie creada por los hermanos Duffer ambientada en los años 80 en Hawkins. Muestra aventuras en bicicleta, comunicaciones por walkie-talkie y las amenazas de la dimensión oscura llamada el Mundo del Revés.");
+        }
+
+        function irANetiqueta() {
+            window.speechSynthesis.cancel();
+            document.getElementById('screen-ciberconvivencia').classList.remove('active');
+            document.getElementById('screen-netiqueta').classList.add('active');
+            leerNetiqueta();
+        }
+
+        function leerNetiqueta() {
+            hablar("La serie nos enseña que los amigos no mienten, la importancia de aceptar a las personas diferentes como Eleven y que el verdadero trabajo en equipo es capaz de superar cualquier obstáculo.");
+        }
+
+        function irAHistoria() {
+            window.speechSynthesis.cancel();
+            document.getElementById('screen-netiqueta').classList.remove('active');
+            document.getElementById('screen-historia').classList.add('active');
+            hablar("Bienvenidos al desafío del Mundo del Revés. Poned a prueba vuestro ingenio en estos 40 retos sobre la historia, los personajes y los valores de Stranger Things.");
+        }
+
+        function empezarJuego() {
+            window.speechSynthesis.cancel();
+            equipos = []; const colores = ['var(--eq1)', 'var(--eq2)', 'var(--eq3)', 'var(--eq4)', 'var(--eq5)', 'var(--eq6)'];
+            for(let i=0; i<numEquipos; i++) equipos.push({ nombre: `Equipo ${i+1}`, pts: 0, color: colores[i] });
+            
+            premiosCiberPolicia.sort(() => Math.random() - 0.5);
+
+            document.getElementById('screen-historia').classList.remove('active');
+            document.getElementById('screen-juego').classList.add('active');
+            actualizarMarcadores(); mostrarPregunta();
+        }
+
+        function generarEventosDelNivel(nivelIdx) {
+            eventosDelNivel = Array(10).fill('none');
+            let numPolicias = 2; let numRuletas = 2; 
+            let disponibles = [0,1,2,3,4,5,6,7,8,9];
+            disponibles.sort(() => Math.random() - 0.5);
+            for(let i=0; i<numPolicias; i++) eventosDelNivel[disponibles.pop()] = 'policia';
+            for(let i=0; i<numRuletas; i++) eventosDelNivel[disponibles.pop()] = 'ruleta';
+        }
+
+        function actualizarIconoNivel(nivelIdx) {
+            const container = document.getElementById('icono-nivel-container');
+            let htmlIcono = '';
+            switch(nivelIdx) {
+                case 0: htmlIcono = '<span class="emoji-grande">📺</span><span class="emoji-grande">📼</span>'; break;
+                case 1: htmlIcono = '<span class="emoji-grande">🚲</span><span class="emoji-grande">🧇</span>'; break;
+                case 2: htmlIcono = '<span class="emoji-grande">📻</span><span class="emoji-grande">👾</span>'; break;
+                case 3: htmlIcono = '<span class="emoji-grande">🤝</span><span class="emoji-grande">⭐</span>'; break;
+                default: htmlIcono = '<span class="emoji-grande">🚲</span>';
+            }
+            container.innerHTML = htmlIcono;
+        }
+
+        function actualizarProgreso() {
+            const progreso = (preguntaActual / 9) * 100;
+            document.getElementById('progress-bar').style.width = `${progreso}%`;
+            const dots = document.getElementById('dots-container').children;
+            for(let i = 0; i < 10; i++) {
+                dots[i].className = 'dot';
+                if (i < preguntaActual) dots[i].classList.add('passed');
+                if (i === preguntaActual) dots[i].classList.add('active');
+            }
+        }
+
+        function mostrarPregunta() {
+            clearInterval(timerInterval);
+            if (preguntaActual === 0) generarEventosDelNivel(nivelActual);
+
+            const niv = niveles[nivelActual]; const p = niv.p[preguntaActual];
+            document.getElementById('ind-nivel').innerText = niv.nombre;
+            document.getElementById('cont-pregunta').innerText = `RETO ${preguntaActual + 1} de 10`;
+            actualizarIconoNivel(nivelActual);
+            document.getElementById('texto-pregunta').innerText = p.q;
+            
+            actualizarProgreso();
+
+            let indices = [0, 1, 2, 3]; indices.sort(() => Math.random() - 0.5);
+            const cont = document.getElementById('contenedor-opciones'); cont.innerHTML = '';
+            let tOpc = ""; const letras = ["A", "B", "C", "D"];
+
+            indices.forEach((idx, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-opcion'; btn.innerText = p.a[idx];
+                btn.onclick = () => verificarRespuesta(idx);
+                cont.appendChild(btn);
+                tOpc += ` Opción ${letras[i]}: ${p.a[idx]}.`;
+            });
+
+            const eventoActivo = eventosDelNivel[preguntaActual];
+            const hasH = (eventoActivo === 'policia');
+            const hasW = (eventoActivo === 'ruleta');
+
+            document.getElementById('ciber-policia-container').style.display = hasH ? 'block' : 'none';
+            document.getElementById('btn-ruleta-container').style.display = hasW ? 'block' : 'none';
+
+            let msg = `${equipos[turnoEquipo].nombre}: ${p.q}`;
+            hablar(msg);
+
+            iniciarTimer();
+        }
+
+        function iniciarTimer() {
+            const checkTime = document.getElementById('check-tiempo').checked;
+            const containerBox = document.getElementById('timer-container-box');
+            if(!checkTime) { containerBox.style.display = 'none'; return; }
+            containerBox.style.display = 'block';
+            timeLeft = 30; 
+            const bar = document.getElementById('timer-bar'); bar.style.width = "100%";
+            timerInterval = setInterval(() => {
+                timeLeft--; bar.style.width = (timeLeft / 30 * 100) + "%";
+                if(timeLeft <= 0) { clearInterval(timerInterval); verificarRespuesta(-1); }
+            }, 1000);
+        }
+
+        function verificarRespuesta(idx) {
+            clearInterval(timerInterval); window.speechSynthesis.cancel();
+            const p = niveles[nivelActual].p[preguntaActual];
+            if(idx === p.c) {
+                playSfx('acierto'); equipos[turnoEquipo].pts += 100;
+                document.getElementById('puntos-flow-gold').style.display = 'block'; setTimeout(()=>document.getElementById('puntos-flow-gold').style.display='none',2000);
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.7 } });
+            } else {
+                playSfx('error'); equipos[turnoEquipo].pts = Math.max(0, equipos[turnoEquipo].pts - 50);
+                document.getElementById('puntos-flow-error').style.display = 'block'; setTimeout(()=>document.getElementById('puntos-flow-error').style.display='none',2000);
+            }
+            setTimeout(() => {
+                preguntaActual++;
+                if(preguntaActual >= 10) {
+                    preguntaActual = 0; nivelActual++;
+                    if(nivelActual < niveles.length) { 
+                        document.getElementById('screen-juego').classList.remove('active'); 
+                        document.getElementById('screen-transicion').classList.add('active'); 
+                        document.getElementById('nombre-siguiente-nivel').innerText = niveles[nivelActual].nombre; 
+                        hablar("¡Portal cerrado! Siguiente bloque: " + niveles[nivelActual].nombre);
+                    }
+                    else { mostrarRankingFinal(); }
+                } else { turnoEquipo = (turnoEquipo + 1) % numEquipos; actualizarMarcadores(); mostrarPregunta(); }
+            }, 2000);
+        }
+
+        function continuarSiguienteNivel() { 
+            document.getElementById('screen-transicion').classList.remove('active'); 
+            document.getElementById('screen-juego').classList.add('active'); 
+            turnoEquipo = (turnoEquipo + 1) % numEquipos; 
+            actualizarMarcadores(); 
+            mostrarPregunta(); 
+        }
+
+        function actualizarMarcadores() {
+            const cont = document.getElementById('contenedor-marcadores'); cont.innerHTML = '';
+            equipos.forEach((eq, i) => {
+                const div = document.createElement('div');
+                div.className = `marcador-eq ${i === turnoEquipo ? 'marcador-activo' : ''}`;
+                div.style.backgroundColor = eq.color;
+                div.innerHTML = `<div style="font-family:'Creepster'; font-size:1rem; letter-spacing:1px;">${eq.nombre}</div><div style="font-size:1.2rem; font-weight:900;">⭐ ${eq.pts}</div>`;
+                cont.appendChild(div);
+            });
+        }
+
+        function hablar(t) { 
+            window.speechSynthesis.cancel(); 
+            const u = new SpeechSynthesisUtterance(t); 
+            u.lang='es-ES'; u.rate = 0.95; 
+            window.speechSynthesis.speak(u); 
+        }
+        
+        function playSfx(type) {
+            const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
+            osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+            if (type === 'acierto') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, now); osc.frequency.setValueAtTime(659.25, now + 0.1); osc.frequency.setValueAtTime(783.99, now + 0.2);
+                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05); gainNode.gain.linearRampToValueAtTime(0, now + 0.4);
+                osc.start(now); osc.stop(now + 0.4);
+            } else if (type === 'error') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(250, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
+                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05); gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'magic') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(300, now); osc.frequency.linearRampToValueAtTime(900, now + 0.5);
+                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.2, now + 0.2); gainNode.gain.linearRampToValueAtTime(0, now + 0.5);
+                osc.start(now); osc.stop(now + 0.5);
+            }
+        }
+
+        function abrirCiberPolicia() { 
+            clearInterval(timerInterval); window.speechSynthesis.cancel(); 
+            document.getElementById('ciber-policia-container').style.display = 'none';
+            document.getElementById('modal-ciberpolicia').style.display = 'flex';
+            playSfx('magic');
+            
+            let premioObj = premiosCiberPolicia.pop();
+            if (premioObj.p === "intercambio") {
+                document.getElementById('ciberpolicia-texto').innerText = premioObj.msg;
+                document.getElementById('btn-cerrar-policia').style.display = 'none';
+                hablar(premioObj.msg); prepararIntercambioPolicia();
+            } else {
+                equipos[turnoEquipo].pts += premioObj.p;
+                document.getElementById('ciberpolicia-texto').innerText = premioObj.msg;
+                document.getElementById('btn-cerrar-policia').style.display = 'block';
+                document.getElementById('intercambio-equipos-policia').style.display = 'none';
+                actualizarMarcadores(); hablar(premioObj.msg);
+            }
+        }
+
+        function prepararIntercambioPolicia() {
+            const area = document.getElementById('intercambio-equipos-policia'); const lista = document.getElementById('lista-intercambio-policia');
+            area.style.display = 'block'; lista.innerHTML = '';
+            equipos.forEach((eq, i) => {
+                if(i !== turnoEquipo) {
+                    const btn = document.createElement('button'); btn.className = 'btn-accion'; btn.style.fontSize = '1rem'; btn.style.padding = '8px 15px';
+                    btn.innerText = `Con ${eq.nombre} (${eq.pts} pts)`; btn.onclick = () => ejecutarIntercambioPolicia(i, eq.nombre);
+                    lista.appendChild(btn);
+                }
+            });
+            if(numEquipos < 2) { 
+                document.getElementById('ciberpolicia-texto').innerText = "Modo individual activo. Sin intercambio."; 
+                area.style.display = 'none'; document.getElementById('btn-cerrar-policia').style.display = 'block';
+            }
+        }
+
+        function ejecutarIntercambioPolicia(idxTarget, nombreTarget) {
+            playSfx('magic'); let temp = equipos[turnoEquipo].pts; equipos[turnoEquipo].pts = equipos[idxTarget].pts; equipos[idxTarget].pts = temp;
+            document.getElementById('intercambio-equipos-policia').style.display = 'none';
+            let finalMsg = `Cambio de frecuencia completado con ${nombreTarget}. ¡Seguimos investigando en Hawkins!`;
+            document.getElementById('ciberpolicia-texto').innerText = finalMsg; hablar(finalMsg);
+            actualizarMarcadores(); document.getElementById('btn-cerrar-policia').style.display = 'block';
+        }
+
+        function cerrarCiberPolicia() { document.getElementById('modal-ciberpolicia').style.display = 'none'; iniciarTimer(); }
+
+        function abrirModalRuleta() { 
+            clearInterval(timerInterval); window.speechSynthesis.cancel(); 
+            document.getElementById('btn-ruleta-container').style.display = 'none'; 
+            document.getElementById('modal-ruleta').style.display = 'flex'; 
+            document.getElementById('btn-tirar-ruleta').style.display = 'block'; 
+            document.getElementById('btn-cerrar-ruleta').style.display = 'none';
+            document.getElementById('intercambio-equipos-ruleta').style.display = 'none';
+            document.getElementById('ruleta-texto').innerText = "¡Gira la ruleta retro para conseguir puntos o sorpresas de los 80!";
+            hablar("¡Gira la ruleta retro para conseguir puntos o sorpresas de los 80!");
+        }
+
+        function girarRuleta() {
+            const giro = 3600 + Math.floor(Math.random()*360); 
+            document.getElementById('ruleta-fisica').style.transform = `rotate(${giro}deg)`;
+            document.getElementById('btn-tirar-ruleta').style.display = 'none';
+            document.getElementById('ruleta-texto').innerText = "¡Lanzando el hechizo...";
+            setTimeout(() => {
+                const premioObj = premiosRuleta[Math.floor(Math.random() * premiosRuleta.length)];
+                if (premioObj.p === "intercambio") {
+                    playSfx('magic'); document.getElementById('ruleta-texto').innerText = premioObj.msg;
+                    hablar(premioObj.msg); prepararIntercambioRuleta();
+                } else {
+                    if(premioObj.p > 0) playSfx('acierto'); else playSfx('error');
+                    equipos[turnoEquipo].pts += premioObj.p; if(equipos[turnoEquipo].pts < 0) equipos[turnoEquipo].pts = 0; 
+                    document.getElementById('ruleta-texto').innerText = premioObj.msg;
+                    actualizarMarcadores(); hablar(premioObj.msg);
+                    document.getElementById('btn-cerrar-ruleta').style.display = 'block';
+                }
+            }, 3000);
+        }
+
+        function prepararIntercambioRuleta() {
+            const area = document.getElementById('intercambio-equipos-ruleta'); const lista = document.getElementById('lista-intercambio-ruleta');
+            area.style.display = 'block'; lista.innerHTML = '';
+            equipos.forEach((eq, i) => {
+                if(i !== turnoEquipo) {
+                    const btn = document.createElement('button'); btn.className = 'btn-accion'; btn.style.fontSize = '1rem'; btn.style.padding = '8px 15px';
+                    btn.innerText = `Con ${eq.nombre} (${eq.pts} pts)`; btn.onclick = () => ejecutarIntercambioRuleta(i, eq.nombre);
+                    lista.appendChild(btn);
+                }
+            });
+            if(numEquipos < 2) { 
+                document.getElementById('ruleta-texto').innerText = "Modo individual activo. Sin intercambio."; 
+                area.style.display = 'none'; document.getElementById('btn-cerrar-ruleta').style.display = 'block';
+            }
+        }
+
+        function ejecutarIntercambioRuleta(idxTarget, nombreTarget) {
+            playSfx('magic'); let temp = equipos[turnoEquipo].pts; equipos[turnoEquipo].pts = equipos[idxTarget].pts; equipos[idxTarget].pts = temp;
+            document.getElementById('intercambio-equipos-ruleta').style.display = 'none';
+            let finalMsg = `Puntos intercambiados con ${nombreTarget}. ¡Trabajando en equipo en Hawkins!`;
+            document.getElementById('ruleta-texto').innerText = finalMsg; hablar(finalMsg);
+            actualizarMarcadores(); document.getElementById('btn-cerrar-ruleta').style.display = 'block';
+        }
+
+        function cerrarRuleta() { document.getElementById('modal-ruleta').style.display = 'none'; iniciarTimer(); }
+
+        function mostrarRankingFinal() {
+            document.getElementById('screen-juego').classList.remove('active'); 
+            document.getElementById('screen-final').classList.add('active');
+            const cont = document.getElementById('contenedor-ranking'); cont.innerHTML = '';
+            const orden = [...equipos].sort((a,b) => b.pts - a.pts);
+            const medallas = ["🥇", "🥈", "🥉", "4º", "5º", "6º"];
+            orden.forEach((eq, i) => {
+                const fila = document.createElement('div');
+                fila.className = `rank-fila ${i===0?'rank-1':''}`; fila.style.borderLeftColor = eq.color;
+                fila.innerHTML = `<div>${medallas[i]} ${eq.nombre}</div><div>⭐ ${eq.pts} pts</div>`;
+                cont.appendChild(fila);
+            });
+            confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+            hablar("¡Misión cumplida! Felicidades por completar el gran desafío educativo de Stranger Things.");
+        }
+
+        function mostrarDiploma() {
+            window.speechSynthesis.cancel();
+            document.getElementById('screen-final').classList.remove('active');
+            document.getElementById('screen-diploma').classList.add('active');
+            confetti({ particleCount: 300, spread: 120, origin: { y: 0.5 } });
+            hablar("¡Enhorabuena! Habéis demostrado conocer a la perfección el universo de Stranger Things, comprendiendo el valor de la lealtad y el trabajo en equipo.");
+        }
+    </script>
+</body>
+</html>

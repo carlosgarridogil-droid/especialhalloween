@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conocemos Curiosidades de Halloween 🎃</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Creepster (Título terrorífico) y Fredoka (Texto de fácil lectura) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Tipografías principales */
+        .font-creepster {
+            font-family: 'Creepster', cursive;
+        }
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #0c0714;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* Título terrorífico con resplandor neón */
+        .spooky-title {
+            text-shadow: 
+                0 0 10px #ff6b00,
+                0 0 25px #ff6b00,
+                0 0 45px #a855f7,
+                0 0 80px #a855f7;
+            letter-spacing: 2px;
+        }
+
+        /* Animaciones flotantes */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-18px) rotate(4deg); }
+        }
+        @keyframes float-reverse {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-22px) rotate(-5deg); }
+        }
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(234, 88, 12, 0.8)); }
+            50% { transform: scale(1.06); filter: drop-shadow(0 0 30px rgba(234, 88, 12, 1)); }
+        }
+
+        .animate-float {
+            animation: float 4.5s ease-in-out infinite;
+        }
+        .animate-float-slow {
+            animation: float-reverse 6s ease-in-out infinite;
+        }
+        .animate-glow {
+            animation: pulse-glow 3s ease-in-out infinite;
+        }
+
+        /* Botones interactivos con volumen y efectos */
+        .btn-spooky {
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 8px 0 rgba(0,0,0,0.4), 0 0 20px rgba(0,0,0,0.2);
+        }
+        .btn-spooky:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 0 rgba(0,0,0,0.4), 0 0 25px rgba(255, 120, 0, 0.6);
+        }
+        .btn-spooky:active {
+            transform: translateY(2px) scale(0.98);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.4);
+        }
+
+        /* Fondo temático con patrón místico */
+        .bg-spooky-pattern {
+            background-image: radial-gradient(#2e1065 1.5px, transparent 1.5px), radial-gradient(#1e1b4b 1.5px, #0c0714 1.5px);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+        }
+
+        /* Control de visualización de pantallas */
+        .screen {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+        }
+        .screen.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        /* Diploma styling */
+        .diploma-border {
+            border: 10px double #ea580c;
+            background: linear-gradient(135deg, #1e1b4b 0%, #2e1065 50%, #4c1d95 100%);
+            box-shadow: 0 0 30px rgba(234, 88, 12, 0.6);
+        }
+    </style>
+</head>
+<body class="bg-spooky-pattern min-h-screen flex flex-col justify-between items-center p-4 sm:p-6 select-none">
+
+    <!-- Canvas para Confeti -->
+    <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50 w-full h-full"></canvas>
+
+    <!-- Elementos decorativos animados en segundo plano -->
+    <div class="fixed top-4 left-4 text-5xl sm:text-7xl animate-float pointer-events-none z-0" aria-hidden="true">🦇</div>
+    <div class="fixed top-12 right-6 text-6xl sm:text-8xl animate-float-slow pointer-events-none z-0" aria-hidden="true">👻</div>
+    <div class="fixed bottom-8 left-6 text-6xl sm:text-8xl animate-float-slow pointer-events-none z-0" aria-hidden="true">🕷️</div>
+    <div class="fixed bottom-6 right-8 text-5xl sm:text-7xl animate-float pointer-events-none z-0" aria-hidden="true">🦇</div>
+
+    <!-- CONTENEDOR PRINCIPAL DE LA APLICACIÓN -->
+    <main class="w-full max-w-4xl mx-auto flex-1 flex flex-col justify-center items-center z-10 my-auto">
+
+        <!-- ==================== PANTALLA PRINCIPAL ==================== -->
+        <section id="screen-main" class="screen active flex-col items-center w-full text-center py-4">
+            
+            <!-- Título y Encabezado Principal -->
+            <header class="mb-6 sm:mb-8">
+                <div class="inline-block text-6xl sm:text-8xl mb-2 animate-glow">🎃</div>
+                
+                <h1 class="font-creepster spooky-title text-4xl sm:text-6xl md:text-7xl text-orange-500 font-bold leading-tight px-2">
+                    CONOCEMOS CURIOSIDADES DE HALLOWEEN
+                </h1>
+            </header>
+
+            <!-- Menú de Botones Principales -->
+            <nav class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 w-full max-w-3xl px-2">
+                
+                <button onclick="openScreen('historia')" class="btn-spooky bg-gradient-to-r from-orange-600 to-amber-600 border-4 border-amber-300 rounded-2xl p-4 sm:p-5 text-left flex items-center space-x-4">
+                    <span class="text-4xl sm:text-5xl bg-black/30 p-3 rounded-xl">📜</span>
+                    <span class="text-2xl sm:text-3xl font-bold text-white">1. La Historia de Halloween</span>
+                </button>
+
+                <button onclick="openScreen('jack')" class="btn-spooky bg-gradient-to-r from-purple-700 to-indigo-800 border-4 border-purple-300 rounded-2xl p-4 sm:p-5 text-left flex items-center space-x-4">
+                    <span class="text-4xl sm:text-5xl bg-black/30 p-3 rounded-xl">🎃</span>
+                    <span class="text-2xl sm:text-3xl font-bold text-white">2. La Leyenda de Jack O'Lantern</span>
+                </button>
+
+                <button onclick="openScreen('disfraz')" class="btn-spooky bg-gradient-to-r from-green-600 to-emerald-800 border-4 border-green-300 rounded-2xl p-4 sm:p-5 text-left flex items-center space-x-4">
+                    <span class="text-4xl sm:text-5xl bg-black/30 p-3 rounded-xl">👗</span>
+                    <span class="text-2xl sm:text-3xl font-bold text-white">3. Los Disfraces</span>
+                </button>
+
+                <button onclick="openScreen('chuches')" class="btn-spooky bg-gradient-to-r from-pink-600 to-rose-700 border-4 border-pink-300 rounded-2xl p-4 sm:p-5 text-left flex items-center space-x-4">
+                    <span class="text-4xl sm:text-5xl bg-black/30 p-3 rounded-xl">🍬</span>
+                    <span class="text-2xl sm:text-3xl font-bold text-white">4. El Truco o Trato</span>
+                </button>
+
+                <button onclick="openScreen('colores')" class="btn-spooky bg-gradient-to-r from-amber-600 to-stone-900 border-4 border-amber-400 rounded-2xl p-4 sm:p-5 text-left flex items-center space-x-4">
+                    <span class="text-4xl sm:text-5xl bg-black/30 p-3 rounded-xl">🎨</span>
+                    <span class="text-2xl sm:text-3xl font-bold text-white">5. Los Colores Naranja y Negro</span>
+                </button>
+
+                <!-- BOTÓN DESTACADO DEL JUEGO -->
+                <button onclick="startQuiz()" class="btn-spooky bg-gradient-to-r from-yellow-500 via-orange-500 to-red-600 border-4 border-yellow-300 rounded-2xl p-4 sm:p-5 text-left flex items-center space-x-4 shadow-2xl animate-pulse">
+                    <span class="text-4xl sm:text-5xl bg-black/40 p-3 rounded-xl">🎮</span>
+                    <span class="text-2xl sm:text-3xl font-extrabold text-white">¡JUEGO DE PREGUNTAS! 👻</span>
+                </button>
+
+            </nav>
+        </section>
+
+        <!-- ==================== PANTALLA 3: DISFRACES ==================== -->
+        <section id="screen-disfraz" class="screen flex-col items-center w-full text-center">
+            <article class="bg-purple-950/95 border-4 border-green-500 rounded-3xl p-6 sm:p-8 w-full max-w-2xl shadow-2xl relative overflow-hidden">
+                <div class="text-6xl sm:text-8xl mb-4 animate-float">👗</div>
+                <h2 class="font-creepster text-4xl sm:text-5xl text-green-400 mb-6 tracking-wide">Los Disfraces de Halloween</h2>
+                
+                <p id="text-disfraz" class="text-2xl sm:text-3xl leading-relaxed text-amber-100 font-semibold mb-8 bg-black/50 p-6 rounded-2xl border-2 border-green-500/50">
+                    Antiguamente, las personas usaban disfraces de monstruos para espantar a los malos espíritus y protegerse. ¡Hoy nos disfrazamos para divertirnos y pedir caramelos!
+                </p>
+
+                <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+                    <button onclick="speakText('text-disfraz')" class="btn-spooky bg-green-600 hover:bg-green-500 border-4 border-green-300 text-white font-bold text-2xl py-4 px-8 rounded-2xl flex items-center space-x-3 w-full sm:w-auto justify-center">
+                        <span class="text-4xl">🔊</span>
+                        <span>Escuchar</span>
+                    </button>
+                    
+                    <button onclick="goHome()" class="btn-spooky bg-orange-600 hover:bg-orange-500 border-4 border-orange-300 text-white font-bold text-2xl py-4 px-8 rounded-2xl flex items-center space-x-3 w-full sm:w-auto justify-center">
+                        <span class="text-3xl">⬅️</span>
+                        <span>Volver al Menú Principal</span>
+                    </button>
+                </div>
+            </article>
+        </section>
+
+        <!-- ==================== PANTALLA 4: TRUCO O TRATO ==================== -->
+        <section id="screen-chuches" class="screen flex-col items-center w-full text-center">
+            <article class="bg-purple-950/95 border-4 border-pink-500 rounded-3xl p-6 sm:p-8 w-full max-w-2xl shadow-2xl relative overflow-hidden">
+                <div class="text-6xl sm:text-8xl mb-4 animate-float">🍬</div>
+                <h2 class="font-creepster text-4xl sm:text-5xl text-pink-400 mb-6 tracking-wide">El Truco o Trato</h2>
+                
+                <p id="text-chuches" class="text-2xl sm:text-3xl leading-relaxed text-amber-100 font-semibold mb-8 bg-black/50 p-6 rounded-2xl border-2 border-pink-500/50">
+                    Hace muchos años, la gente regalaba panecillos dulces a los niños que cantaban de puerta en puerta. Hoy celebramos el truco o trato pidiendo riquísimos caramelos.
+                </p>
+
+                <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+                    <button onclick="speakText('text-chuches')" class="btn-spooky bg-green-600 hover:bg-green-500 border-4 border-green-300 text-white font-bold text-2xl py-4 px-8 rounded-2xl flex items-center space-x-3 w-full sm:w-auto justify-center">
+                        <span class="text-4xl">🔊</span>
+                        <span>ESCUCHAR</span>
+                    </button>
+                    
+                    <button onclick="goHome()" class="btn-spooky bg-orange-600 hover:bg-orange-500 border-4 border-orange-300 text-white font-bold text-2xl py-4 px-8 rounded-2xl flex items-center space-x-3 w-full sm:w-auto justify-center">
+                        <span class="text-3xl">⬅️</span>
+                        <span>VOLVER AL INICIO</span>
+                    </button>
+                </div>
+            </article>
+        </section>
+
+        <!-- ==================== PANTALLA 5: COLORES ==================== -->
+        <section id="screen-colores" class="screen flex-col items-center w-full text-center">
+            <article class="bg-purple-950/95 border-4 border-amber-400 rounded-3xl p-6 sm:p-8 w-full max-w-2xl shadow-2xl relative overflow-hidden">
+                <div class="text-6xl sm:text-8xl mb-4 animate-float">🎨</div>
+                <h2 class="font-creepster text-4xl sm:text-5xl text-amber-300 mb-6 tracking-wide">Los Colores Naranja y Negro</h2>
+                
+                <p id="text-colores" class="text-2xl sm:text-3xl leading-relaxed text-amber-100 font-semibold mb-8 bg-black/50 p-6 rounded-2xl border-2 border-amber-500/50">
+                    El color naranja representa las calabazas y la cosecha del otoño. El color negro recuerda la llegada de las noches largas del invierno.
+                </p>
+
+                <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+                    <button onclick="speakText('text-colores')" class="btn-spooky bg-green-600 hover:bg-green-500 border-4 border-green-300 text-white font-bold text-2xl py-4 px-8 rounded-2xl flex items-center space-x-3 w-full sm:w-auto justify-center">
+                        <span class="text-4xl">🔊</span>
+                        <span>ESCUCHAR</span>
+                    </button>
+                    
+                    <button onclick="goHome()" class="btn-spooky bg-orange-600 hover:bg-orange-500 border-4 border-orange-300 text-white font-bold text-2xl py-4 px-8 rounded-2xl flex items-center space-x-3 w-full sm:w-auto justify-center">
+                        <span class="text-3xl">⬅️</span>
+                        <span>VOLVER AL INICIO</span>
+                    </button>
+                </div>
+            </article>
+        </section>
+
+
+        <!-- ==================== PANTALLA DE JUEGO / QUIZ ==================== -->
+        <section id="screen-quiz" class="screen flex-col items-center w-full text-center">
+            <article class="bg-purple-950/95 border-4 border-orange-500 rounded-3xl p-5 sm:p-8 w-full max-w-3xl shadow-2xl relative">
+                
+                <!-- Barra de Progreso y Marcador -->
+                <header class="mb-4 w-full">
+                    <div class="flex justify-between items-center mb-2 px-2 text-lg sm:text-2xl font-bold text-amber-300">
+                        <span id="quiz-progress-text">Pregunta 1 de 20</span>
+                        <span id="quiz-score-text">Puntos: 0</span>
+                    </div>
+                    <div class="w-full bg-black/60 rounded-full h-5 border-2 border-orange-500 overflow-hidden">
+                        <div id="quiz-bar" class="bg-gradient-to-r from-amber-500 to-orange-600 h-full w-1/20 transition-all duration-300"></div>
+                    </div>
+                </header>
+
+                <!-- Pregunta -->
+                <div class="bg-black/50 p-5 rounded-2xl border-2 border-purple-500/50 mb-6 flex flex-col items-center">
+                    <div id="quiz-icon" class="text-5xl sm:text-7xl mb-2 animate-bounce">❓</div>
+                    <h2 id="quiz-question" class="text-2xl sm:text-3xl font-bold text-white mb-4 leading-snug">
+                        ¿Pregunta de prueba?
+                    </h2>
+                    <button onclick="speakQuizQuestion()" class="btn-spooky bg-green-600 hover:bg-green-500 border-2 border-green-300 text-white font-bold text-lg py-2 px-6 rounded-xl flex items-center space-x-2">
+                        <span class="text-2xl">🔊</span>
+                        <span>Escuchar Pregunta</span>
+                    </button>
+                </div>
+
+                <!-- Opciones de Respuesta -->
+                <div id="quiz-options" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <!-- Dinámico por JS -->
+                </div>
+
+                <!-- Mensaje de Feedback -->
+                <div id="quiz-feedback" class="hidden p-4 rounded-2xl font-bold text-xl sm:text-2xl mb-4 border-4 animate-bounce">
+                </div>
+
+                <!-- Botón Salir -->
+                <div class="flex justify-center">
+                    <button onclick="goHome()" class="btn-spooky bg-stone-700 hover:bg-stone-600 border-2 border-stone-400 text-white font-bold text-lg py-2 px-6 rounded-xl flex items-center space-x-2">
+                        <span>⬅️ Salir del Juego</span>
+                    </button>
+                </div>
+            </article>
+        </section>
+
+
+        <!-- ==================== PANTALLA DIPLOMA FINAL ==================== -->
+        <section id="screen-diploma" class="screen flex-col items-center w-full text-center">
+            <article class="diploma-border rounded-3xl p-6 sm:p-10 w-full max-w-3xl shadow-2xl relative text-center my-4">
+                
+                <div class="text-6xl sm:text-8xl mb-2">🏆 🎃 🎓</div>
+                
+                <h2 class="font-creepster text-4xl sm:text-6xl text-amber-400 mb-2 tracking-wide">DIPLOMA DEL TERROR</h2>
+                <p class="text-xl sm:text-2xl text-purple-200 font-semibold mb-6">Se otorga el título oficial de:</p>
+
+                <div class="bg-black/60 border-4 border-amber-400 p-6 rounded-2xl mb-6">
+                    <h3 class="font-creepster text-3xl sm:text-5xl text-orange-400 mb-2">GRAN CAZADOR/A DE CURIOSIDADES DE HALLOWEEN</h3>
+                    <p id="diploma-score-text" class="text-xl sm:text-3xl text-amber-200 font-bold mt-2">
+                        ¡Has completado el juego con éxito!
+                    </p>
+                </div>
+
+                <div class="text-3xl sm:text-5xl font-extrabold text-orange-400 font-creepster tracking-wider mb-6 animate-pulse">
+                    🎃 ¡FELIZ DÍA DE HALLOWEEN! 👻
+                </div>
+
+                <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+                    <button onclick="speakText('diploma-speech')" class="btn-spooky bg-green-600 hover:bg-green-500 border-4 border-green-300 text-white font-bold text-xl py-3 px-6 rounded-2xl flex items-center space-x-2">
+                        <span class="text-3xl">🔊</span>
+                        <span>Escuchar Felicidades</span>
+                    </button>
+                    
+                    <button onclick="startQuiz()" class="btn-spooky bg-purple-600 hover:bg-purple-500 border-4 border-purple-300 text-white font-bold text-xl py-3 px-6 rounded-2xl flex items-center space-x-2">
+                        <span class="text-3xl">🔄</span>
+                        <span>Jugar Otra Vez</span>
+                    </button>
+
+                    <button onclick="goHome()" class="btn-spooky bg-orange-600 hover:bg-orange-500 border-4 border-orange-300 text-white font-bold text-xl py-3 px-6 rounded-2xl flex items-center space-x-2">
+                        <span class="text-3xl">🏠</span>
+                        <span>Menú Principal</span>
+                    </button>
+                </div>
+
+                <!-- Texto oculto para lectura -->
+                <p id="diploma-speech" class="sr-only">
+                    ¡Felicidades! Has ganado el Diploma del Terror como Gran Cazador de Curiosidades de Halloween. ¡Te deseamos un muy Feliz Día de Halloween!
+                </p>
+            </article>
+        </section>
+
+    </main>
+
+    <!-- Pie de página -->
+    <footer class="w-full text-center py-4 text-purple-300 font-medium text-base sm:text-lg z-10 flex flex-col items-center gap-1">
+        <p>🎃 Recursos Educativos e Interactivos para Primaria 🎃</p>
+        <p class="text-xl sm:text-2xl text-amber-300 font-extrabold tracking-wide mt-1">
+            Elaborado por Carlos Garrido
+        </p>
+    </footer>
+
+    <!-- LÓGICA EN JAVASCRIPT -->
+    <script>
+        // Declaración de Síntesis de voz y Contexto de Audio
+        let synth = window.speechSynthesis;
+        let audioCtx = null;
+
+        // BANCO DE 20 PREGUNTAS ADAPTADAS A 1º DE PRIMARIA
+        const quizQuestions = [
+            {
+                q: "¿De qué color son las calabazas típicas de Halloween?",
+                icon: "🎃",
+                options: ["Naranja", "Azul", "Rosa", "Verde fosforito"],
+                correct: 0
+            },
+            {
+                q: "¿Qué animal nocturno vuela de noche y se relaciona con Halloween?",
+                icon: "🦇",
+                options: ["Murciélago", "Gallina", "Pato", "Mariposa"],
+                correct: 0
+            },
+            {
+                q: "¿Qué transporte usa una bruja para volar por el cielo?",
+                icon: "🧹",
+                options: ["Coche", "Escoba mágica", "Autobús", "Bicicleta"],
+                correct: 1
+            },
+            {
+                q: "¿Qué frase mágica decimos para pedir caramelos en las casas?",
+                icon: "🍬",
+                options: ["¡Buenas tardes!", "¡Truco o trato!", "¡Abracadabra!", "¡Hasta luego!"],
+                correct: 1
+            },
+            {
+                q: "¿De qué fruta se hacen tradicionalmente las linternas sonrientes?",
+                icon: "🎃",
+                options: ["Plátano", "Sandía", "Calabaza", "Manzana"],
+                correct: 2
+            },
+            {
+                q: "¿Qué dicen los fantasmas divertidos para dar un sustito?",
+                icon: "👻",
+                options: ["¡Miau!", "¡Guau!", "¡Buhhhhh!", "¡Pío pío!"],
+                correct: 2
+            },
+            {
+                q: "¿Cuáles son los dos colores más famosos de Halloween?",
+                icon: "🎨",
+                options: ["Naranja y Negro", "Blanco y Azul", "Rojo y Verde", "Rosa y Amarillo"],
+                correct: 0
+            },
+            {
+                q: "¿En qué estación del año se celebra Halloween?",
+                icon: "🍂",
+                options: ["Verano", "Otoño", "Primavera", "Invierno"],
+                correct: 1
+            },
+            {
+                q: "¿Qué animal de 8 patas hace telas brillantes en Halloween?",
+                icon: "🕷️",
+                options: ["Araña", "Hormiga", "Caracol", "Abeja"],
+                correct: 0
+            },
+            {
+                q: "¿Dónde llevaba Jack su luz encendida según la leyenda?",
+                icon: "🕯️",
+                options: ["Dentro de un nabo o calabaza", "En un zapato", "En el bolsillo", "En el sombrero"],
+                correct: 0
+            },
+            {
+                q: "¿Qué animal suele acompañar a las brujitas en los cuentos?",
+                icon: "🐈‍⬛",
+                options: ["Gato negro", "Loro verde", "Pez rojo", "Hámster"],
+                correct: 0
+            },
+            {
+                q: "¿Por qué se disfrazaba la gente antiguamente en Halloween?",
+                icon: "🎭",
+                options: ["Para ir a la playa", "Para espantar a los malos espíritus", "Para dormir", "Para hacer deporte"],
+                correct: 1
+            },
+            {
+                q: "¿En qué país comenzó la fiesta original de Samhain?",
+                icon: "🇮🇪",
+                options: ["Irlanda", "España", "Japón", "Australia"],
+                correct: 0
+            },
+            {
+                q: "¿Qué objeto usan las brujas para cocinar sus pociones mágicas?",
+                icon: "🍲",
+                options: ["Sartén pequeños", "Caldero grande", "Microondas", "Tostadora"],
+                correct: 1
+            },
+            {
+                q: "¿Qué monstruo amigable está hecho de vendas de papel blanco?",
+                icon: "🧟",
+                options: ["Momia", "Vampiro", "Hombre lobo", "Pirata"],
+                correct: 0
+            },
+            {
+                q: "¿Qué hace la gente cuando acierta Truco o Trato en Halloween?",
+                icon: "🍭",
+                options: ["Llorar", "Regalar ricos caramelos", "Correr una maratón", "Limpiar la cocina"],
+                correct: 1
+            },
+            {
+                q: "¿Qué animal aulla a la luna llena en Halloween?",
+                icon: "🐺",
+                options: ["Lobo", "Gato", "Vaca", "Oveja"],
+                correct: 0
+            },
+            {
+                q: "¿En qué mes del año se celebra el día de Halloween?",
+                icon: "📅",
+                options: ["Octubre", "Mayo", "Agosto", "Enero"],
+                correct: 0
+            },
+            {
+                q: "¿Qué alimento dulce les encanta a los niños en Halloween?",
+                icon: "🍫",
+                options: ["Chocolates y chuches", "Sopa de verduras", "Pescado", "Ajo"],
+                correct: 0
+            },
+            {
+                q: "¿Qué deseamos a los amigos en esta fiesta fantasmagórica?",
+                icon: "🎉",
+                options: ["¡Feliz Día de Halloween!", "¡Feliz Verano!", "¡Feliz Año Nuevo!", "¡Buenas noches!"],
+                correct: 0
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let canAnswer = true;
+
+        // Efectos de sonido mágicos creados con Web Audio API
+        function playSpookySound() {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(160, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(450, audioCtx.currentTime + 0.25);
+
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.25);
+            } catch (e) {
+                console.log("Audio play");
+            }
+        }
+
+        // Sonido de Acierto (Alegría mágica)
+        function playSuccessSound() {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.setValueAtTime(500, now + 0.1);
+                osc.frequency.setValueAtTime(800, now + 0.2);
+
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.4);
+            } catch (e) {}
+        }
+
+        // Sonido de Fallo (Susto simpático)
+        function playErrorSound() {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.linearRampToValueAtTime(110, now + 0.3);
+
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } catch (e) {}
+        }
+
+        // SISTEMA DE JUEGO (QUIZ)
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            canAnswer = true;
+            openScreen('quiz');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            canAnswer = true;
+            const qData = quizQuestions[currentQuestionIndex];
+
+            // Ocultar feedback
+            const fb = document.getElementById('quiz-feedback');
+            fb.classList.add('hidden');
+
+            // Actualizar interfaz
+            document.getElementById('quiz-progress-text').innerText = `Pregunta ${currentQuestionIndex + 1} de ${quizQuestions.length}`;
+            document.getElementById('quiz-score-text').innerText = `Puntos: ${score}`;
+            document.getElementById('quiz-icon').innerText = qData.icon;
+            document.getElementById('quiz-question').innerText = qData.q;
+
+            // Actualizar barra
+            const percent = ((currentQuestionIndex + 1) / quizQuestions.length) * 100;
+            document.getElementById('quiz-bar').style.width = percent + '%';
+
+            // Opciones
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = '';
+
+            qData.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-spooky bg-gradient-to-r from-purple-800 to-indigo-900 border-4 border-purple-400 rounded-2xl p-4 text-xl sm:text-2xl font-bold text-white text-left flex items-center space-x-3 hover:border-amber-300';
+                btn.onclick = () => checkAnswer(idx);
+                btn.innerHTML = `<span class="bg-black/40 px-3 py-1 rounded-xl text-amber-300">${idx + 1}</span> <span>${opt}</span>`;
+                optionsContainer.appendChild(btn);
+            });
+
+            // Lectura automática de la pregunta para facilitar a 1º Primaria
+            speakQuizQuestion();
+        }
+
+        function speakQuizQuestion() {
+            stopSpeech();
+            const qData = quizQuestions[currentQuestionIndex];
+            const textToSpeak = `Pregunta ${currentQuestionIndex + 1}: ${qData.q}`;
+            
+            if (!synth) return;
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+            const voices = synth.getVoices();
+            const spanishVoice = voices.find(v => v.lang.startsWith('es'));
+            if (spanishVoice) utterance.voice = spanishVoice;
+            utterance.lang = 'es-ES';
+            utterance.rate = 0.85;
+            synth.speak(utterance);
+        }
+
+        const successMessages = [
+            "¡MUAHAHA! ¡Acierto espeluznante!",
+            "¡Fantasmagórico! Respondiste genial.",
+            "¡Cuidado! ¡Tu sabiduría de Halloween asusta!",
+            "¡Súper bien! Eres un brujito/a muy listo/a.",
+            "¡Sorprendente! ¡Acierto de monstruo sabio!"
+        ];
+
+        const failMessages = [
+            "¡Uuuhhh! Un fantasma travieso te ha despistado.",
+            "¡Casi casi! La brujita voló con la respuesta correcta.",
+            "¡Un murciélago te tapó los ojos! Inténtalo en la siguiente.",
+            "¡Oh no! Un hechicero cambió la opción correcta."
+        ];
+
+        function checkAnswer(selectedIndex) {
+            if (!canAnswer) return;
+            canAnswer = false;
+            stopSpeech();
+
+            const qData = quizQuestions[currentQuestionIndex];
+            const fb = document.getElementById('quiz-feedback');
+            fb.classList.remove('hidden');
+
+            if (selectedIndex === qData.correct) {
+                score += 10;
+                playSuccessSound();
+                const msg = successMessages[Math.floor(Math.random() * successMessages.length)];
+                fb.className = 'p-4 rounded-2xl font-bold text-xl sm:text-2xl mb-4 border-4 bg-green-900/90 border-green-400 text-green-200 animate-bounce';
+                fb.innerText = `🎃 ${msg}`;
+            } else {
+                playErrorSound();
+                const msg = failMessages[Math.floor(Math.random() * failMessages.length)];
+                fb.className = 'p-4 rounded-2xl font-bold text-xl sm:text-2xl mb-4 border-4 bg-red-900/90 border-red-400 text-red-200 animate-bounce';
+                fb.innerText = `👻 ${msg} La correcta era: ${qData.options[qData.correct]}`;
+            }
+
+            document.getElementById('quiz-score-text').innerText = `Puntos: ${score}`;
+
+            setTimeout(() => {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < quizQuestions.length) {
+                    loadQuestion();
+                } else {
+                    finishQuiz();
+                }
+            }, 2500);
+        }
+
+        function finishQuiz() {
+            openScreen('diploma');
+            document.getElementById('diploma-score-text').innerText = `Has obtenido ${score} puntos de ${quizQuestions.length * 10} posibles. ¡Un trabajo fantástico!`;
+            triggerConfetti();
+        }
+
+        // Lluvia de confeti mediante Canvas nativo
+        function triggerConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+            const colors = ['#ff6b00', '#a855f7', '#22c55e', '#eab308', '#ec4899', '#ffffff'];
+
+            for (let i = 0; i < 120; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    size: Math.random() * 12 + 6,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    speedY: Math.random() * 4 + 2,
+                    speedX: Math.random() * 2 - 1,
+                    spin: Math.random() * 360
+                });
+            }
+
+            let animationFrames = 0;
+
+            function animateConfetti() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => {
+                    p.y += p.speedY;
+                    p.x += p.speedX;
+                    p.spin += 5;
+
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate((p.spin * Math.PI) / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                    ctx.restore();
+                });
+
+                animationFrames++;
+                if (animationFrames < 250) {
+                    requestAnimationFrame(animateConfetti);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+
+            animateConfetti();
+        }
+
+        // Sistema de navegación entre pantallas
+        function openScreen(screenId) {
+            playSpookySound();
+            stopSpeech(); // Detener cualquier lectura activa
+
+            // Ocultar todas las pantallas
+            const screens = document.querySelectorAll('.screen');
+            screens.forEach(s => s.classList.remove('active'));
+
+            // Activar la pantalla solicitada
+            const target = document.getElementById('screen-' + screenId);
+            if (target) {
+                target.classList.add('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // Volver al menú principal
+        function goHome() {
+            playSpookySound();
+            stopSpeech();
+            openScreen('main');
+        }
+
+        // Cancelar reproducción de audio
+        function stopSpeech() {
+            if (synth && synth.speaking) {
+                synth.cancel();
+            }
+        }
+
+        // Lectura de texto en voz alta adaptada para 1º de Primaria
+        function speakText(elementId) {
+            if (!synth) {
+                alert("La síntesis de voz no está disponible en este navegador.");
+                return;
+            }
+
+            stopSpeech(); // Detener lectura anterior
+
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            const textToSpeak = element.innerText || element.textContent;
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+
+            // Búsqueda de voz en español
+            const voices = synth.getVoices();
+            const spanishVoice = voices.find(voice => voice.lang.startsWith('es'));
+            if (spanishVoice) {
+                utterance.voice = spanishVoice;
+            }
+
+            utterance.lang = 'es-ES';
+            utterance.rate = 0.85; // Velocidad pausada idónea para niños de 6-7 años
+            utterance.pitch = 1.1; // Tono más cálido y animado
+
+            synth.speak(utterance);
+        }
+
+        // Precargar voces
+        if (synth && synth.onvoiceschanged !== undefined) {
+            synth.onvoiceschanged = () => synth.getVoices();
+        }
+    </script>
+</body>
+</html>

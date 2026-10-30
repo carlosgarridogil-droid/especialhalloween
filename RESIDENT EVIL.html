@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RESIDENT EVIL - DESAFÍO DE SUPERVIVENCIA Y CIENCIA / PRIMARIA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-principal: #050000;
+            --bg-panel: #140303;
+            --rojo-umbrella: #ff0000;
+            --blanco-umbrella: #ffffff;
+            --gris-laboratorio: #8a8a8a;
+            --verde-hierba: #00ff44;
+            --amarillo-precaucion: #ffcc00;
+            --azul-stars: #0066ff;
+            --texto-claro: #f5f5f5;
+            --eq1: #ff0000; --eq2: #0066ff; --eq3: #00ff44; --eq4: #ffcc00; --eq5: #9d00ff; --eq6: #ff6600;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: radial-gradient(circle at center, #2b0000 0%, #120000 60%, #000000 100%);
+            background-attachment: fixed;
+            color: var(--texto-claro);
+            margin: 0; padding: 0; overflow-x: hidden;
+            display: flex; flex-direction: column; min-height: 100vh; user-select: none;
+        }
+
+        .ventana-ciber {
+            border: 3px solid var(--rojo-umbrella);
+            background: rgba(20, 3, 3, 0.95);
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 0 25px rgba(255, 0, 0, 0.5), inset 0 0 15px rgba(0, 0, 0, 0.8);
+            max-width: 850px;
+            width: 90%;
+            margin: 20px auto;
+            position: relative;
+        }
+
+        .badge-lateral {
+            position: absolute;
+            padding: 8px 15px;
+            font-family: 'Creepster', cursive;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.9);
+            z-index: 10;
+            letter-spacing: 1px;
+        }
+        .badge-tutoria { background: var(--azul-stars); color: var(--texto-claro); top: -15px; left: 15px; border: 1px solid var(--rojo-umbrella); }
+        .badge-primaria { background: var(--rojo-umbrella); color: #fff; top: -15px; right: 15px; font-weight: 900; }
+
+        .screen { display: none; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; padding: 20px; text-align: center; animation: fadeIn 0.5s ease-out; }
+        .screen.active { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+
+        h1.titulo-juego {
+            font-family: 'Creepster', cursive; font-size: clamp(2rem, 5.5vw, 3.5rem);
+            color: var(--rojo-umbrella); letter-spacing: 2px; line-height: 1.1;
+            text-shadow: 0 0 15px rgba(255, 0, 0, 0.8), 3px 3px 0 #000;
+            margin: 15px 0;
+        }
+
+        .selector-equipos { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 15px 0; }
+        .btn-jug {
+            width: 55px; height: 55px; border-radius: 12px; border: 2px solid var(--rojo-umbrella);
+            font-size: 1.5rem; font-family: 'Creepster', cursive; cursor: pointer; background: var(--bg-panel); color: white;
+            transition: 0.2s;
+        }
+        .btn-jug.seleccionado { background: var(--rojo-umbrella); color: #fff; font-weight: 900; transform: scale(1.1); box-shadow: 0 0 15px var(--rojo-umbrella); }
+
+        .game-header {
+            display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 5px;
+            font-family: 'Creepster', cursive; font-size: 1.2rem; letter-spacing: 1px;
+        }
+        .nivel-text { color: var(--rojo-umbrella); }
+        .pregunta-text { color: #aaa; font-family: 'Nunito', sans-serif; font-size: 0.9rem; }
+
+        .progress-container { width: 100%; height: 8px; background: #000; border-radius: 4px; margin-top: 5px; overflow: hidden; border: 1px solid var(--rojo-umbrella); }
+        .progress-bar { height: 100%; background: var(--rojo-umbrella); width: 0%; transition: width 0.3s; box-shadow: 0 0 8px var(--rojo-umbrella); }
+        .dots-container { display: flex; justify-content: space-between; margin: 12px 0; padding: 0 5px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: #333; transition: 0.3s; }
+        .dot.active { background: var(--amarillo-precaucion); box-shadow: 0 0 10px var(--amarillo-precaucion); transform: scale(1.3); }
+        .dot.passed { background: var(--verde-hierba); }
+
+        .timer-container {
+            width: 100%; background: #000; height: 20px; border-radius: 10px; margin-bottom: 10px; overflow: hidden; border: 2px solid var(--rojo-umbrella); position: relative;
+        }
+        #timer-bar { height: 100%; background: linear-gradient(90deg, var(--verde-hierba), var(--amarillo-precaucion), var(--rojo-umbrella)); transition: width 1s linear; }
+
+        #icono-nivel-container { font-size: 3.5rem; margin: 10px 0; min-height: 70px; display: flex; align-items: center; justify-content: center; gap: 15px; }
+        .emoji-grande { animation: pulse 2s infinite; display: inline-block; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+        .btn-accion {
+            padding: 12px 35px; font-size: 1.4rem; font-family: 'Creepster', cursive; letter-spacing: 1px; border-radius: 30px;
+            border: 2px solid var(--rojo-umbrella); background: var(--azul-stars); color: white; cursor: pointer;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.5); transition: all 0.2s; margin-top: 15px; text-transform: uppercase;
+        }
+        .btn-accion:hover { background: var(--rojo-umbrella); color: #fff; box-shadow: 0 0 20px var(--rojo-umbrella); }
+
+        .btn-audio {
+            background: rgba(255, 0, 0, 0.2); border: 2px solid var(--rojo-umbrella); color: white;
+            padding: 8px 18px; border-radius: 20px; cursor: pointer; font-family: 'Creepster', cursive;
+            font-size: 1.1rem; margin-bottom: 15px; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; letter-spacing: 1px;
+        }
+        .btn-audio:hover { background: var(--rojo-umbrella); color: #fff; }
+
+        .caja-explicativa {
+            font-size: 1.25rem; line-height: 1.6; text-align: left; padding: 22px;
+            background: rgba(0,0,0,0.75); border-radius: 15px; margin-bottom: 20px;
+            border: 1px solid var(--rojo-umbrella); box-shadow: inset 0 0 10px rgba(0,0,0,0.9);
+        }
+        .caja-explicativa ul { margin: 10px 0 0 0; padding-left: 25px; }
+        .caja-explicativa li { margin-bottom: 10px; }
+
+        .btn-evento-flotante { position: absolute; top: -25px; width: 60px; height: 60px; cursor: pointer; z-index: 10; border: none; background: transparent; }
+        #ciber-policia-container { left: 15px; font-size: 3.8rem; filter: drop-shadow(0 0 10px var(--rojo-umbrella)); }
+        #btn-ruleta-container { right: 15px; font-size: 3.5rem; filter: drop-shadow(0 0 10px var(--amarillo-precaucion)); }
+
+        .panel-pregunta { background: var(--bg-panel); color: white; width: 95%; max-width: 800px; border-radius: 20px; padding: 25px; border: 2px solid var(--rojo-umbrella); position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.9); }
+        #contenedor-opciones { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .btn-opcion { background: #000; border: 1px solid #333; padding: 15px; font-size: 1rem; color: white; font-weight: 700; border-radius: 10px; cursor: pointer; text-align: left; transition: 0.2s; }
+        .btn-opcion:hover { border-color: var(--rojo-umbrella); background: #1a0303; }
+        .btn-opcion.correcta { background: var(--verde-hierba) !important; color: #000; font-weight: 900; }
+        .btn-opcion.incorrecta { background: var(--rojo-umbrella) !important; color: white; }
+
+        #contenedor-marcadores { display: flex; gap: 10px; width: 100%; justify-content: center; flex-wrap: wrap; margin-bottom: 15px; }
+        .marcador-eq { width: 110px; padding: 8px; border-radius: 10px; background: #140303; opacity: 0.6; border: 2px solid transparent; }
+        .marcador-eq.marcador-activo { opacity: 1; transform: scale(1.05); border-color: var(--rojo-umbrella); box-shadow: 0 0 10px var(--rojo-umbrella); }
+
+        .ruleta-wrapper { position: relative; width: 220px; height: 220px; margin: 15px auto; border-radius: 50%; border: 6px solid var(--rojo-umbrella); overflow: hidden; }
+        .ruleta-bg { width: 100%; height: 100%; background: conic-gradient(#ff0000 0% 20%, #0066ff 20% 40%, #00ff44 40% 60%, #ffcc00 60% 80%, #9d00ff 80% 100%); transition: transform 3s cubic-bezier(0.1, 0.8, 0.1, 1); }
+        .ruleta-pointer { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 20px solid var(--amarillo-precaucion); z-index: 5; }
+        
+        .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.92); z-index:10000; align-items:center; justify-content:center; }
+        .modal-content { background: var(--bg-panel); color: white; padding: 25px; border-radius: 20px; text-align: center; max-width: 420px; width: 90%; border: 2px solid var(--rojo-umbrella); box-shadow: 0 0 25px var(--rojo-umbrella); }
+
+        .puntos-flow { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Creepster', cursive; font-size: 4rem; z-index: 9999; pointer-events: none; animation: puntosFlowUp 2s ease-out forwards; display: none; }
+        #puntos-flow-gold { color: var(--amarillo-precaucion); text-shadow: 0 0 20px var(--amarillo-precaucion); }
+        #puntos-flow-error { color: var(--rojo-umbrella); text-shadow: 0 0 20px var(--rojo-umbrella); }
+        @keyframes puntosFlowUp { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } 20% { opacity: 1; transform: translate(-50%, -60%) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -200px) scale(0.8); } }
+        
+        .rank-fila { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; margin: 8px 0; border-radius: 10px; background: rgba(255,255,255,0.05); border-left: 8px solid transparent; font-family: 'Creepster', cursive; font-size: 1.4rem; letter-spacing: 1px; }
+        .rank-1 { background: rgba(255, 0, 0, 0.3); border: 1px solid var(--rojo-umbrella); transform: scale(1.03); }
+
+        .diploma-container { background: #000; color: white; border: 4px solid var(--rojo-umbrella); padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 0 40px rgba(255, 0, 0, 0.6); max-width: 800px; }
+
+        .autor-credito {
+            margin-top: 15px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--gris-laboratorio);
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- EFECTOS DE PUNTOS -->
+    <div id="puntos-flow-gold" class="puntos-flow">+100</div>
+    <div id="puntos-flow-error" class="puntos-flow">-50</div>
+
+    <!-- PANTALLA INICIAL -->
+    <div id="screen-inicio" class="screen active">
+        <div class="ventana-ciber">
+            <div class="badge-lateral badge-tutoria">S.T.A.R.S. HEADQUARTERS</div>
+            <div class="badge-lateral badge-primaria">EDUCACIÓN PRIMARIA</div>
+            <h1 class="titulo-juego">RESIDENT EVIL: MISIÓN BIOLÓGICA ☣️🌿</h1>
+            <p style="font-weight: 700; color: var(--rojo-umbrella); margin: 5px 0;">Junta de Andalucía - Cuestionario Interactivo sobre la Historia, la Ciencia, la Supervivencia y la Ética de Resident Evil</p>
+            
+            <div style="font-size: 4.5rem; margin: 20px 0; display: flex; justify-content: center; gap: 20px;">
+                <span class="emoji-grande">☣️</span>
+                <span class="emoji-grande" style="animation-delay: 0.3s;">🧪</span>
+                <span class="emoji-grande" style="animation-delay: 0.6s;">🌿</span>
+            </div>
+            
+            <p style="font-size: 1.1rem; font-weight: 700;">Selecciona número de equipos:</p>
+            <div class="selector-equipos">
+                <button class="btn-jug" onclick="seleccionarJugadores(1)">1</button>
+                <button class="btn-jug" onclick="seleccionarJugadores(2)">2</button>
+                <button class="btn-jug seleccionado" onclick="seleccionarJugadores(3)">3</button>
+                <button class="btn-jug" onclick="seleccionarJugadores(4)">4</button>
+                <button class="btn-jug" onclick="seleccionarJugadores(5)">5</button>
+                <button class="btn-jug" onclick="seleccionarJugadores(6)">6</button>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.6); padding: 12px; border-radius: 10px; margin: 15px 0; border: 1px solid var(--rojo-umbrella);">
+                <label style="cursor: pointer; font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <input type="checkbox" id="check-tiempo" checked style="transform: scale(1.4);"> Temporizador de Emergencia (30 seg por reto)
+                </label>
+            </div>
+
+            <button class="btn-accion" onclick="irACiberconvivencia()">¡ACCEDER AL LABORATORIO!</button>
+            <div class="autor-credito">Aplicación elaborada por el maestro Carlos Garrido</div>
+        </div>
+    </div>
+
+    <!-- PANTALLA EXPLICATIVA 1: ORIGEN Y CONCEPTO DEL VIDEOJUEGO -->
+    <div id="screen-ciberconvivencia" class="screen">
+        <div class="ventana-ciber">
+            <h1 style="color: var(--rojo-umbrella);">¿CÓMO NACIÓ RESIDENT EVIL? 🎮🧟</h1>
+            <button class="btn-audio" onclick="leerCiberconvivencia()">🔊 Escuchar Explicación</button>
+            
+            <div class="caja-explicativa">
+                <p style="margin-top:0;"><strong>Resident Evil</strong> (conocido en Japón como <em>Biohazard</em>) fue creado en 1996 por el diseñador <strong>Shinji Mikami</strong> y la desarrolladora Capcom.</p>
+                <p>Curiosidades de su origen y desarrollo:</p>
+                <ul>
+                    <li><strong>Pionero del Survival Horror:</strong> Popularizó un género donde lo importante no es correr a lo loco, sino gestionar recursos, resolver puzles y pensar con estrategia.</li>
+                    <li><strong>Investigación científica:</strong> La historia alerta sobre los peligros del mal uso de la biotecnología y los experimentos científicos irresponsables.</li>
+                    <li><strong>Estrategia y puzles:</strong> A lo largo de la saga, los personajes deben encontrar llaves con formas geométricas, combinar hierbas medicinales y descifrar códigos secretos.</li>
+                </ul>
+            </div>
+            
+            <button class="btn-accion" onclick="irANetiqueta()">SIGUIENTE: CIENCIA Y VALORES ➔</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA EXPLICATIVA 2: LECCIONES Y ÉTICA CIENTÍFICA -->
+    <div id="screen-netiqueta" class="screen">
+        <div class="ventana-ciber">
+            <h1 style="color: var(--amarillo-precaucion);">CIENCIA ÉTICA Y TRABAJO EN EQUIPO 🌿🤝</h1>
+            <button class="btn-audio" onclick="leerNetiqueta()">🔊 Escuchar Explicación</button>
+
+            <div class="caja-explicativa">
+                <p style="margin-top:0;">Además de la emoción y el misterio, Resident Evil nos transmite importantes aprendizajes para la ciencia y el aula:</p>
+                <p>Grandes lecciones de la saga:</p>
+                <ul>
+                    <li><strong>La bioética en la ciencia:</strong> Nos enseña que los avances científicos deben usarse siempre para curar y ayudar a las personas, nunca para hacer daño.</li>
+                    <li><strong>Botánica y curación:</strong> Mezclar hierbas verdes y rojas nos muestra la importancia de la medicina natural y el uso responsable de remedios.</li>
+                    <li><strong>Compañerismo en situaciones extremas:</strong> Agentes como Leon, Jill, Chris y Claire sobreviven gracias a la lealtad, la confianza y la cooperación constante.</li>
+                </ul>
+            </div>
+
+            <button class="btn-accion" onclick="irAHistoria()">¡IR A LA HISTORIA DE LA MISIÓN!</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA HISTORIA E INTRODUCCIÓN -->
+    <div id="screen-historia" class="screen">
+        <div class="ventana-ciber">
+            <h1 style="color: var(--amarillo-precaucion);">¡ATENCIÓN EQUIPO DE EVALUACIÓN S.T.A.R.S.! ☣️</h1>
+            <div class="caja-explicativa">
+                <p>¡Atención, alumnos de Primaria! La central de Raccoon City necesita mentes analíticas para contener la amenaza biológica mediante el conocimiento y la lógica.</p>
+                <p>A través de estos 40 retos divididos en 4 bloques exploraremos la <strong>historia del videojuego</strong>, los <strong>personajes inolvidables</strong>, la <strong>ciencia y botánica medicinal</strong> y los <strong>valores de ética científica y trabajo en equipo</strong>.</p>
+                <p>Recordad: ¡El mejor equipo no es solo el que acumula más puntos, sino el que colabora con respeto, deportividad y serenidad bajo presión!</p>
+            </div>
+            <button class="btn-accion" onclick="empezarJuego()">¡INICIAR LA INVESTIGACIÓN!</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE JUEGO -->
+    <div id="screen-juego" class="screen">
+        <div id="contenedor-marcadores"></div>
+        <div class="panel-pregunta">
+            <button id="ciber-policia-container" class="btn-evento-flotante" onclick="abrirCiberPolicia()">☣️</button>
+            <button id="btn-ruleta-container" class="btn-evento-flotante" onclick="abrirModalRuleta()">🎡</button>
+            
+            <div class="game-header">
+                <span id="ind-nivel" class="nivel-text">BLOQUE 1</span>
+                <span id="cont-pregunta" class="pregunta-text">RETO 1 de 10</span>
+            </div>
+            
+            <div class="progress-container"><div id="progress-bar" class="progress-bar"></div></div>
+            <div id="dots-container" class="dots-container">
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            </div>
+
+            <div class="timer-container" id="timer-container-box"><div id="timer-bar"></div></div>
+            <div id="icono-nivel-container"></div>
+            <div id="texto-pregunta" style="font-size: 1.4rem; font-weight: 800; margin: 10px 0;"></div>
+            <div id="contenedor-opciones"></div>
+        </div>
+    </div>
+
+    <!-- PANTALLA TRANSICIÓN ENTRE BLOQUES -->
+    <div id="screen-transicion" class="screen">
+        <div class="ventana-ciber">
+            <div style="font-size: 4rem;">⚡ ☣️ ⚡</div>
+            <h1 style="color: var(--verde-hierba);">¡ÁREA DE SEGURIDAD ALCANZADA!</h1>
+            <p style="font-size: 1.3rem;">Siguiente sector del laboratorio:</p>
+            <h2 id="nombre-siguiente-nivel" style="color: var(--rojo-umbrella); font-family: 'Creepster'; font-size: 2rem;"></h2>
+            <div style="font-size: 2.5rem; margin: 15px;">🧪 🌿 📼</div>
+            <button class="btn-accion" onclick="continuarSiguienteNivel()">¡AVANZAR AL SIGUIENTE SECTOR!</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA FINAL - RANKING -->
+    <div id="screen-final" class="screen">
+        <div class="ventana-ciber">
+            <h1 class="titulo-juego">CLASIFICACIÓN DE SUPERVIVENCIA S.T.A.R.S.</h1>
+            <div style="font-size: 3.5rem; margin-bottom: 15px;">🏆☣️</div>
+            <div id="contenedor-ranking" style="width: 100%; text-align: left;"></div>
+            <button class="btn-accion" style="margin-top:25px; background: var(--amarillo-precaucion); color: #000;" onclick="mostrarDiploma()">OBTENER CERTIFICADO DE EXPERTO EN BIOÉTICA 📜</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA DIPLOMA / CERTIFICADO -->
+    <div id="screen-diploma" class="screen">
+        <div class="diploma-container">
+            <div style="font-size: 5rem; margin-bottom: 10px;">🏅☣️🌿</div>
+            <h1 style="color: var(--rojo-umbrella); font-family: 'Creepster'; font-size: 2.8rem; margin: 10px 0;">DIPLOMA DE EXPERTO EN SUPERVIVENCIA Y BIOÉTICA</h1>
+            <h2 style="color: var(--amarillo-precaucion); font-size: 1.8rem; margin: 10px 0;">EDUCACIÓN PRIMARIA - DIVISIÓN DE INVESTIGACIÓN</h2>
+            <p style="font-size: 1.3rem; line-height: 1.6; padding: 15px; border-radius: 12px; background: rgba(255,255,255,0.05); margin: 20px; border: 1px solid var(--rojo-umbrella);">
+                Habéis demostrado conocer a la perfección la historia de <strong style="color: var(--rojo-umbrella);">Resident Evil</strong>, comprendiendo el valor de la ética científica, la botánica curativa y el trabajo en equipo.<br><br>
+                ¡Enhorabuena, habéis garantizado la seguridad de la misión mediante la sabiduría y el compañerismo!
+            </p>
+            <button class="btn-accion" onclick="location.reload()">REINICIAR DESAFÍO</button>
+        </div>
+    </div>
+
+    <!-- MODAL AGENTE S.T.A.R.S. / TUTOR -->
+    <div id="modal-ciberpolicia" class="modal-overlay">
+        <div class="modal-content">
+            <h2 style="color: var(--rojo-umbrella); font-family: 'Creepster'; font-size: 2rem;">☣️ COMUNICADO DE SEGURIDAD S.T.A.R.S. ☣️</h2>
+            <p id="ciberpolicia-texto" style="font-size:1.4rem; font-weight: 700;"></p>
+            
+            <div id="intercambio-equipos-policia" style="display:none; margin-bottom: 15px;">
+                <p style="font-weight:bold;">Elige el equipo para realizar el intercambio de suministros:</p>
+                <div id="lista-intercambio-policia" style="display:flex; flex-direction:column; gap:5px;"></div>
+            </div>
+
+            <button id="btn-cerrar-policia" class="btn-accion" onclick="cerrarCiberPolicia()" style="margin: 0 auto; display: block;">¡ENTENDIDO!</button>
+        </div>
+    </div>
+    
+    <!-- MODAL RULETA MÁGICA -->
+    <div id="modal-ruleta" class="modal-overlay">
+        <div class="modal-content">
+            <h2 style="color: var(--amarillo-precaucion); font-family: 'Creepster'; font-size: 2rem;">🎡 RULETA DE SUMINISTROS Y PÓCIMAS 🎡</h2>
+            <div class="ruleta-wrapper"><div class="ruleta-pointer"></div><div id="ruleta-fisica" class="ruleta-bg"></div></div>
+            <p id="ruleta-texto" style="font-size:1.3rem; font-weight: 700; min-height: 50px;"></p>
+            
+            <div id="intercambio-equipos-ruleta" style="display:none; margin-bottom: 15px;">
+                <p style="font-weight:bold;">Elige el equipo para realizar el intercambio de pócimas:</p>
+                <div id="lista-intercambio-ruleta" style="display:flex; flex-direction:column; gap:5px;"></div>
+            </div>
+
+            <button id="btn-tirar-ruleta" class="btn-accion" onclick="girarRuleta()" style="margin: 0 auto; display: block;">¡GIRAR RULETA!</button>
+            <button id="btn-cerrar-ruleta" class="btn-accion" onclick="cerrarRuleta()" style="display:none; margin: 0 auto;">¡ACEPTAR!</button>
+        </div>
+    </div>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let numEquipos = 3, equipos = [], nivelActual = 0, preguntaActual = 0, turnoEquipo = 0;
+        let timerInterval, timeLeft;
+        let eventosDelNivel = [];
+
+        // EVENTOS DEL COMUNICADO DE SEGURIDAD
+        let premiosCiberPolicia = [
+            { p: 100, msg: "¡Encontraste una hierba verde curativa en el jardín del laboratorio! +100 pts" },
+            { p: 200, msg: "¡Combinaste una hierba verde con una roja para curar a tu compañero! +200 pts" },
+            { p: 300, msg: "¡Explicaste a la clase la importancia del uso responsable de la biotecnología! +300 pts" },
+            { p: 400, msg: "¡Resolviste el puzle de las estatuas en el vestíbulo principal! +400 pts" },
+            { p: 500, msg: "¡Respetaste las normas de seguridad del laboratorio de ciencias! +500 pts" },
+            { p: 600, msg: "¡Guardaste los tubos de ensayo usados en el contenedor de reciclaje! +600 pts" },
+            { p: 700, msg: "¡Escribiste un informe científico detallado en clase de Lengua! +700 pts" },
+            { p: 800, msg: "¡Compartiste tus remedios de primeros auxilios con otro equipo! +800 pts" },
+            { p: 900, msg: "¡Aprendiste el nombre de todas las plantas medicinales del juego! +900 pts" },
+            { p: 1000, msg: "¡Eres un auténtico Guardián de la Bioética y la Ciencia! +1000 pts" },
+            { p: "intercambio", msg: "¡Transferencia de Suministros! Intercambia puntos con otro equipo." },
+            { p: "intercambio", msg: "¡Transferencia de Suministros! Intercambia puntos con otro equipo." },
+            { p: "intercambio", msg: "¡Transferencia de Suministros! Intercambia puntos con otro equipo." }
+        ];
+
+        // BANCO DE PREGUNTAS (4 BLOQUES TEMÁTICOS SOBRE RESIDENT EVIL)
+        const niveles = [
+            { nombre: "BLOQUE 1: ORIGEN, CREADORES Y CONCEPTO", p: [
+                { q: "¿En qué año se lanzó el primer videojuego de Resident Evil para la consola PlayStation?", a: ["En 1996.", "En 2005.", "En 1988.", "En 2012."], c: 0 },
+                { q: "¿Quién fue el afamado diseñador japonés creador original de la saga Resident Evil?", a: ["Shinji Mikami.", "Shigeru Miyamoto.", "Hideo Kojima.", "Satoru Iwata."], c: 0 },
+                { q: "¿Con qué nombre original se conoce a la saga de Resident Evil en Japón?", a: ["Biohazard.", "Silent Hill.", "Dino Crisis.", "Monster Hunter."], c: 0 },
+                { q: "¿Qué término de género de videojuegos popularizó Resident Evil en la industria?", a: ["Survival Horror (Supervivencia y misterio).", "Juego de carreras arcade.", "Simulador de deportes.", "Juego de plataformas en 2D."], c: 0 },
+                { q: "¿Cómo se llama la malvada corporación farmacéutica responsable de los virus y experimentos?", a: ["Corporación Umbrella.", "Aperture Science.", "Abstergo.", "Weyland-Yutani."], c: 0 },
+                { q: "¿Cuál es el famoso logotipo geométrico que identifica a la Corporación Umbrella?", a: ["Un paraguas octogonal con sectores rojos y blancos.", "Un sol brillante amarillo.", "Un murciélago negro sobre fondo azul.", "Un triángulo verde de tres lados."], c: 0 },
+                { q: "¿En qué mansión misteriosa del bosque de Arklay se desarrolla la primera aventura?", a: ["La Mansión Spencer.", "La Mansión Addams.", "El Castillo Dimitrescu.", "La Casa Blanca."], c: 0 },
+                { q: "¿Qué unidad de rescate y tácticas especiales de la policía protagoniza la primera misión?", a: ["S.T.A.R.S.", "S.W.A.T.", "F.B.I.", "G.I. Joe."], c: 0 },
+                { q: "El valor educativo de analizar la historia de Umbrella en Resident Evil radica en...", a: ["Comprender la importancia de la ética en la investigación científica.", "Aprender a romper cosas en un laboratorio.", "Comprar medicinas sin receta.", "Ignorar las normas de seguridad."], c: 0 },
+                { q: "A diferencia de otros juegos de acción, la mecánica principal de Resident Evil requiere...", a: ["Gestionar recursos con prudencia, mantener la calma y resolver puzles.", "Correr lo más rápido posible sin mirar.", "Pulsar todos los botones a la vez.", "No usar nunca el mapa."], c: 0 }
+            ]},
+            { nombre: "BLOQUE 2: PERSONAJES Y HÉROES DE LA SAGA", p: [
+                { q: "¿Qué agente novato de la policía llega a Raccoon City en su primer día de trabajo en Resident Evil 2?", a: ["Leon S. Kennedy.", "Chris Redfield.", "Ethan Winters.", "Albert Wesker."], c: 0 },
+                { q: "¿Cómo se llama la valiente miembra de S.T.A.R.S. experta en ganzúas y desactivación de explosivos?", a: ["Jill Valentine.", "Claire Redfield.", "Ada Wong.", "Rebecca Chambers."], c: 0 },
+                { q: "¿Qué héroe busca a su hermana Claire y es un destacado piloto de la unidad S.T.A.R.S.?", a: ["Chris Redfield.", "Leon S. Kennedy.", "Carlos Oliveira.", "Barry Burton."], c: 0 },
+                { q: "¿Cómo se llama la hermana de Chris que viaja en moto a Raccoon City para rescatar a su hermano?", a: ["Claire Redfield.", "Jill Valentine.", "Sherry Birkin.", "Ashley Graham."], c: 0 },
+                { q: "¿Quién es la misteriosa agente vestida de rojo que trabaja en la sombra y lleva un gancho de agarre?", a: ["Ada Wong.", "Mia Winters.", "Helena Harper.", "Sheva Alomar."], c: 0 },
+                { q: "¿Qué joven médica novata del equipo Bravo de S.T.A.R.S. ayuda a Rebecca en la mansión?", a: ["Rebecca Chambers.", "Jill Valentine.", "Claire Redfield.", "Sherry Birkin."], c: 0 },
+                { q: "¿Cómo se llama el villano de gafas de sol oscuras que traicionó al equipo S.T.A.R.S.?", a: ["Albert Wesker.", "William Birkin.", "Jack Krauser.", "Nemesis."], c: 0 },
+                { q: "¿Qué criatura gigante persigue a los supervivientes en Raccoon City pronunciando 'S.T.A.R.S.'?", a: ["Nemesis.", "Mr. X (Tyrant).", "Licker.", "El Gigante."], c: 0 },
+                { q: "¿Cómo se llama el civil protagonista de Resident Evil 7 y Village que busca a su familia?", a: ["Ethan Winters.", "Leon S. Kennedy.", "Chris Redfield.", "Jake Muller."], c: 0 },
+                { q: "El grupo de héroes de Resident Evil nos enseña que ante las dificultades graves...", a: ["La valentía, la ayuda mutua y la perseverancia nos ayudan a proteger a las personas.", "Hay que abandonar a los compañeros.", "Es mejor rendirse sin intentar nada.", "Hay que culpar a los demás."], c: 0 }
+            ]},
+            { nombre: "BLOQUE 3: BOTÁNICA, PUZLES Y OBJETOS DE SUPERVIVENCIA", p: [
+                { q: "¿Qué objeto botánico de color verde es el elemento curativo básico de toda la saga?", a: ["La hierba verde.", "La flor de loto.", "La hoja de roble.", "La seta roja."], c: 0 },
+                { q: "Si combinas una HIERBA VERDE con una HIERBA ROJA en el inventario, consigues...", a: ["Una mezcla curativa potente que restaura la salud por completo.", "Una pócima de veneno peligroso.", "Una llave para abrir puertas.", "Una linterna de luz ultravioleta."], c: 0 },
+                { q: "¿Para qué sirve la HIERBA AZUL en los videojuegos de Resident Evil?", a: ["Para curar el estado de envenenamiento del personaje.", "Para encender la luz en salas oscuras.", "Para abrir cofres cerrados.", "Para comunicarse por radio."], c: 0 },
+                { q: "¿Qué objeto clásico usaban los agentes para guardar la partida en las habitaciones de seguridad?", a: ["La máquina de escribir con cinta de tinta (Ink Ribbon).", "Un teléfono móvil táctil.", "Un ordenador cuántico.", "Un libro de notas con pluma."], c: 0 },
+                { q: "¿Por qué las 'Salas de Seguridad' (Safe Rooms) son famosas en la música de la saga?", a: ["Por su música de piano suave y relajante que transmite paz y tranquilidad.", "Por su música de batería pesada.", "Porque no se escucha ningún sonido.", "Por tener sirenas de alarma ruidosas."], c: 0 },
+                { q: "¿Qué objeto mágico o mecánico guardan los baúles de las salas de seguridad?", a: ["Tienen un inventario conectado mágicamente entre todas las salas de seguridad.", "Comida fresca caliente.", "Trajes de repuesto para los agentes.", "Monedas de oro antiguas."], c: 0 },
+                { q: "En la comisarías de Raccoon City, las puertas principales requerían llaves con símbolos de...", a: ["Picas, Corazones, Tréboles y Diamantes de la baraja de cartas.", "Animales del zodiaco.", "Colores del arcoíris.", "Letras del abecedario griego."], c: 0 },
+                { q: "¿Qué tipo de puzles geométricos deben resolver a menudo los jugadores?", a: ["Colocar gemas de colores en estatuas, cuadrar medallas y ajustar relojes.", "Hacer sudokus matemáticos de 100 casillas.", "Resolver ecuaciones de física cuántica.", "Jugar partidas de ajedrez rápido."], c: 0 },
+                { q: "La mezcla y conservación de hierbas medicinales en el juego es una referencia a...", a: ["La botánica medicinal y la farmacología tradicional.", "La cocina de repostería rápida.", "La pintura de cuadros al óleo.", "La jardinería decorativa."], c: 0 },
+                { q: "La lección sobre la gestión del inventario limitado en Resident Evil nos enseña a...", a: ["Planificar con antelación, priorizar lo importante y no malgastar recursos.", "Llevar todo lo que encontremos sin orden.", "Tirar las cosas útiles al suelo.", "No revisar nunca lo que llevamos en la mochila."], c: 0 }
+            ]},
+            { nombre: "BLOQUE 4: BIOÉTICA, CIENCIA Y CONVIVENCIA ESCOLAR", p: [
+                { q: "¿Qué dilema ético fundamental plantea la creación de los virus biológicos por la Corporación Umbrella?", a: ["Que la ciencia siempre debe guiarse por la ética para proteger la vida y nunca por la codicia.", "Que los experimentos deben hacerse en secreto.", "Que la tecnología es mala en todos los casos.", "Que no hay que estudiar ciencias en la escuela."], c: 0 },
+                { q: "Si en nuestro laboratorio escolar de ciencias hacemos un experimento, la norma principal es...", a: ["Respetar las normas de seguridad, llevar protección y escuchar al maestro.", "Mezclar los productos al azar sin preguntar.", "Probar los líquidos con la boca.", "Correr por el aula con los tubos de ensayo."], c: 0 },
+                { q: "La actitud colaborativa entre Leon y Claire en Raccoon City nos enseña que...", a: ["Ayudar a los demás en momentos difíciles crea lazos de confianza inquebrantables.", "Es mejor trabajar siempre solo.", "No hay que compartir los remedios con nadie.", "Hay que competir por ver quién sale primero."], c: 0 },
+                { q: "Frente a un reto complejo de lógica como los puzles de la saga, la mejor estrategia escolar es...", a: ["Pensar con calma, analizar las pistas en equipo y probar hipótesis con serenidad.", "Actuar con rabia y golpear la mesa.", "Copiar la solución sin entender cómo se hizo.", "Rendirse a los cinco segundos."], c: 0 },
+                { q: "El personaje de Sherry Birkin, una niña rescatada en medio de la crisis, recuerda la importancia de...", a: ["Proteger y cuidar siempre a los más pequeños o vulnerables de nuestro colegio.", "Dejar que los pequeños se las apañen solos.", "Excluir a los niños pequeños de los juegos.", "No hablar con los estudiantes menores."], c: 0 },
+                { q: "Si cometemos un error durante una actividad en equipo en el aula, debemos...", a: ["Aprender de la equivocación, pedir disculpas y corregir el plan juntos.", "Echarle la culpa a la Corporación Umbrella.", "Enfadarnos con los compañeros de mesa.", "Abandonar el grupo sin decir nada."], c: 0 },
+                { q: "La investigación botánica sobre plantas medicinales en la vida real sirve para...", a: ["Descubrir medicamentos que curan enfermedades de las personas.", "Hacer pociones mágicas de mentira.", "Destruir los bosques de la naturaleza.", "Fabricar pinturas de colores."], c: 0 },
+                { q: "Cuando trabajamos en grupo como la unidad S.T.A.R.S., la cualidad indispensable del líder es...", a: ["Escuchar a todo el equipo, cuidar de la seguridad de todos y actuar con empatía.", "Mandar a los demás gritando.", "Quedarse con todos los puntos para él.", "No dejar hablar a los miembros del equipo."], c: 0 },
+                { q: "¿Qué valor ético ejercitamos al rechazar el mal uso de las biotecnologías en los videojuegos?", a: ["Responsabilidad, sentido de la justicia, bioética y respeto a la vida humana.", "Amor por las armas biológicas.", "Indiferencia por la salud de las personas.", "Rivalidad entre científicos."], c: 0 },
+                { q: "En definitiva, el gran aprendizaje de Resident Evil para nuestro grupo de Educación Primaria es que...", a: ["La verdadera fuerza reside en el conocimiento, la ética científica, la prudencia y la unión del equipo.", "Hay que tener miedo a las ciencias.", "Es divertido asustar a los compañeros.", "No hace falta estudiar para ser un buen profesional."], c: 0 }
+            ]}
+        ];
+
+        // PREMIOS DE LA RULETA DE SUMINISTROS
+        const premiosRuleta = [
+            { p: 50, msg: "¡Encontraste una cinta de tinta para guardar tu progreso! +50 pts." },
+            { p: 100, msg: "¡Recogiste una HIERBA VERDE en el jardín medicinal! +100 pts." },
+            { p: 150, msg: "¡Mezclaste una HIERBA VERDE con una ROJA en tu inventario! +150 pts." },
+            { p: 200, msg: "¡Resolviste el puzle del reloj de la comisarías! +200 pts." },
+            { p: 250, msg: "¡Encontraste la Llave de Trébol para abrir la sala de muestras! +250 pts." },
+            { p: 300, msg: "¡El equipo S.T.A.R.S. te envió un maletín de primeros auxilios! +300 pts." },
+            { p: 350, msg: "¡Leon S. Kennedy te enseñó una maniobra de esquiva! +350 pts." },
+            { p: 400, msg: "¡Jill Valentine abrió el cofre cerrado con su ganzúa! +400 pts." },
+            { p: 450, msg: "¡Descifraste el código secreto del laboratorio de bioética! +450 pts." },
+            { p: 500, msg: "¡Alcanzaste la Sala de Seguridad con música relajante! +500 pts." },
+            { p: 600, msg: "¡Gran banquete de suministros en la central de inteligencia! +600 pts." },
+            { p: 700, msg: "¡Pócima de la Bioética y la Salud concedida! +700 pts." },
+            { p: 800, msg: "¡Demostración de compañerismo y lealtad en la misión! +800 pts." },
+            { p: 1000, msg: "¡SUPER HECHIZO DEL AGENTE SUPERVIVIENTE S.T.A.R.S.! +1000 pts." },
+            { p: -50, msg: "Se agotó la cinta de tinta de la máquina de escribir: -50 pts." },
+            { p: -100, msg: "Te tropezaste en el pasillo oscuro del laboratorio: -100 pts." },
+            { p: -150, msg: "Una puerta requería una llave que aún no habías encontrado: -150 pts." },
+            { p: -200, msg: "Te despistaste con una alarma de prueba de bioseguridad: -200 pts." },
+            { p: "intercambio", msg: "¡Estrategia de Bioseguridad! Intercambio de puntos. Elige con quién." },
+            { p: "intercambio", msg: "¡Estrategia de Bioseguridad! Intercambio de puntos. Elige con quién." }
+        ];
+
+        function seleccionarJugadores(n) { 
+            numEquipos = n; 
+            document.querySelectorAll('.btn-jug').forEach((b, i) => b.classList.toggle('seleccionado', (i+1)===n)); 
+        }
+
+        // NAVEGACIÓN INICIAL DE PANTALLAS
+        function irACiberconvivencia() {
+            document.getElementById('screen-inicio').classList.remove('active');
+            document.getElementById('screen-ciberconvivencia').classList.add('active');
+            leerCiberconvivencia();
+        }
+
+        function leerCiberconvivencia() {
+            hablar("Resident Evil fue creado en 1996 por Shinji Mikami para Capcom. Es el pionero del género Survival Horror, destacando por la investigación científica, la estrategia y la resolución de puzles con inventario limitado.");
+        }
+
+        function irANetiqueta() {
+            window.speechSynthesis.cancel();
+            document.getElementById('screen-ciberconvivencia').classList.remove('active');
+            document.getElementById('screen-netiqueta').classList.add('active');
+            leerNetiqueta();
+        }
+
+        function leerNetiqueta() {
+            hablar("Resident Evil nos enseña la importancia de la bioética en la ciencia, el valor curativo de la botánica medicinal con sus hierbas y el poder de la cooperación en equipo ante grandes desafíos.");
+        }
+
+        function irAHistoria() {
+            window.speechSynthesis.cancel();
+            document.getElementById('screen-netiqueta').classList.remove('active');
+            document.getElementById('screen-historia').classList.add('active');
+            hablar("Bienvenidos a la misión de evaluación de Resident Evil. Poned a prueba vuestro ingenio en estos 40 retos sobre la historia, los personajes, la botánica medicinal y la ética científica.");
+        }
+
+        function empezarJuego() {
+            window.speechSynthesis.cancel();
+            equipos = []; const colores = ['var(--eq1)', 'var(--eq2)', 'var(--eq3)', 'var(--eq4)', 'var(--eq5)', 'var(--eq6)'];
+            for(let i=0; i<numEquipos; i++) equipos.push({ nombre: `Equipo ${i+1}`, pts: 0, color: colores[i] });
+            
+            premiosCiberPolicia.sort(() => Math.random() - 0.5);
+
+            document.getElementById('screen-historia').classList.remove('active');
+            document.getElementById('screen-juego').classList.add('active');
+            actualizarMarcadores(); mostrarPregunta();
+        }
+
+        function generarEventosDelNivel(nivelIdx) {
+            eventosDelNivel = Array(10).fill('none');
+            let numPolicias = 2; let numRuletas = 2; 
+            let disponibles = [0,1,2,3,4,5,6,7,8,9];
+            disponibles.sort(() => Math.random() - 0.5);
+            for(let i=0; i<numPolicias; i++) eventosDelNivel[disponibles.pop()] = 'policia';
+            for(let i=0; i<numRuletas; i++) eventosDelNivel[disponibles.pop()] = 'ruleta';
+        }
+
+        function actualizarIconoNivel(nivelIdx) {
+            const container = document.getElementById('icono-nivel-container');
+            let htmlIcono = '';
+            switch(nivelIdx) {
+                case 0: htmlIcono = '<span class="emoji-grande">🎮</span><span class="emoji-grande">☣️</span>'; break;
+                case 1: htmlIcono = '<span class="emoji-grande">👮‍♂️</span><span class="emoji-grande">🧪</span>'; break;
+                case 2: htmlIcono = '<span class="emoji-grande">🌿</span><span class="emoji-grande">📼</span>'; break;
+                case 3: htmlIcono = '<span class="emoji-grande">🤝</span><span class="emoji-grande">⭐</span>'; break;
+                default: htmlIcono = '<span class="emoji-grande">☣️</span>';
+            }
+            container.innerHTML = htmlIcono;
+        }
+
+        function actualizarProgreso() {
+            const progreso = (preguntaActual / 9) * 100;
+            document.getElementById('progress-bar').style.width = `${progreso}%`;
+            const dots = document.getElementById('dots-container').children;
+            for(let i = 0; i < 10; i++) {
+                dots[i].className = 'dot';
+                if (i < preguntaActual) dots[i].classList.add('passed');
+                if (i === preguntaActual) dots[i].classList.add('active');
+            }
+        }
+
+        function mostrarPregunta() {
+            clearInterval(timerInterval);
+            if (preguntaActual === 0) generarEventosDelNivel(nivelActual);
+
+            const niv = niveles[nivelActual]; const p = niv.p[preguntaActual];
+            document.getElementById('ind-nivel').innerText = niv.nombre;
+            document.getElementById('cont-pregunta').innerText = `RETO ${preguntaActual + 1} de 10`;
+            actualizarIconoNivel(nivelActual);
+            document.getElementById('texto-pregunta').innerText = p.q;
+            
+            actualizarProgreso();
+
+            let indices = [0, 1, 2, 3]; indices.sort(() => Math.random() - 0.5);
+            const cont = document.getElementById('contenedor-opciones'); cont.innerHTML = '';
+            let tOpc = ""; const letras = ["A", "B", "C", "D"];
+
+            indices.forEach((idx, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-opcion'; btn.innerText = p.a[idx];
+                btn.onclick = () => verificarRespuesta(idx);
+                cont.appendChild(btn);
+                tOpc += ` Opción ${letras[i]}: ${p.a[idx]}.`;
+            });
+
+            const eventoActivo = eventosDelNivel[preguntaActual];
+            const hasH = (eventoActivo === 'policia');
+            const hasW = (eventoActivo === 'ruleta');
+
+            document.getElementById('ciber-policia-container').style.display = hasH ? 'block' : 'none';
+            document.getElementById('btn-ruleta-container').style.display = hasW ? 'block' : 'none';
+
+            let msg = `${equipos[turnoEquipo].nombre}: ${p.q}`;
+            hablar(msg);
+
+            iniciarTimer();
+        }
+
+        function iniciarTimer() {
+            const checkTime = document.getElementById('check-tiempo').checked;
+            const containerBox = document.getElementById('timer-container-box');
+            if(!checkTime) { containerBox.style.display = 'none'; return; }
+            containerBox.style.display = 'block';
+            timeLeft = 30; 
+            const bar = document.getElementById('timer-bar'); bar.style.width = "100%";
+            timerInterval = setInterval(() => {
+                timeLeft--; bar.style.width = (timeLeft / 30 * 100) + "%";
+                if(timeLeft <= 0) { clearInterval(timerInterval); verificarRespuesta(-1); }
+            }, 1000);
+        }
+
+        function verificarRespuesta(idx) {
+            clearInterval(timerInterval); window.speechSynthesis.cancel();
+            const p = niveles[nivelActual].p[preguntaActual];
+            if(idx === p.c) {
+                playSfx('acierto'); equipos[turnoEquipo].pts += 100;
+                document.getElementById('puntos-flow-gold').style.display = 'block'; setTimeout(()=>document.getElementById('puntos-flow-gold').style.display='none',2000);
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.7 } });
+            } else {
+                playSfx('error'); equipos[turnoEquipo].pts = Math.max(0, equipos[turnoEquipo].pts - 50);
+                document.getElementById('puntos-flow-error').style.display = 'block'; setTimeout(()=>document.getElementById('puntos-flow-error').style.display='none',2000);
+            }
+            setTimeout(() => {
+                preguntaActual++;
+                if(preguntaActual >= 10) {
+                    preguntaActual = 0; nivelActual++;
+                    if(nivelActual < niveles.length) { 
+                        document.getElementById('screen-juego').classList.remove('active'); 
+                        document.getElementById('screen-transicion').classList.add('active'); 
+                        document.getElementById('nombre-siguiente-nivel').innerText = niveles[nivelActual].nombre; 
+                        hablar("¡Área asegurada! Siguiente sector: " + niveles[nivelActual].nombre);
+                    }
+                    else { mostrarRankingFinal(); }
+                } else { turnoEquipo = (turnoEquipo + 1) % numEquipos; actualizarMarcadores(); mostrarPregunta(); }
+            }, 2000);
+        }
+
+        function continuarSiguienteNivel() { 
+            document.getElementById('screen-transicion').classList.remove('active'); 
+            document.getElementById('screen-juego').classList.add('active'); 
+            turnoEquipo = (turnoEquipo + 1) % numEquipos; 
+            actualizarMarcadores(); 
+            mostrarPregunta(); 
+        }
+
+        function actualizarMarcadores() {
+            const cont = document.getElementById('contenedor-marcadores'); cont.innerHTML = '';
+            equipos.forEach((eq, i) => {
+                const div = document.createElement('div');
+                div.className = `marcador-eq ${i === turnoEquipo ? 'marcador-activo' : ''}`;
+                div.style.backgroundColor = eq.color;
+                div.innerHTML = `<div style="font-family:'Creepster'; font-size:1rem; letter-spacing:1px;">${eq.nombre}</div><div style="font-size:1.2rem; font-weight:900;">⭐ ${eq.pts}</div>`;
+                cont.appendChild(div);
+            });
+        }
+
+        function hablar(t) { 
+            window.speechSynthesis.cancel(); 
+            const u = new SpeechSynthesisUtterance(t); 
+            u.lang='es-ES'; u.rate = 0.95; 
+            window.speechSynthesis.speak(u); 
+        }
+        
+        function playSfx(type) {
+            const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
+            osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+            if (type === 'acierto') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, now); osc.frequency.setValueAtTime(659.25, now + 0.1); osc.frequency.setValueAtTime(783.99, now + 0.2);
+                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05); gainNode.gain.linearRampToValueAtTime(0, now + 0.4);
+                osc.start(now); osc.stop(now + 0.4);
+            } else if (type === 'error') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(250, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
+                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05); gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'magic') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(300, now); osc.frequency.linearRampToValueAtTime(900, now + 0.5);
+                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.2, now + 0.2); gainNode.gain.linearRampToValueAtTime(0, now + 0.5);
+                osc.start(now); osc.stop(now + 0.5);
+            }
+        }
+
+        function abrirCiberPolicia() { 
+            clearInterval(timerInterval); window.speechSynthesis.cancel(); 
+            document.getElementById('ciber-policia-container').style.display = 'none';
+            document.getElementById('modal-ciberpolicia').style.display = 'flex';
+            playSfx('magic');
+            
+            let premioObj = premiosCiberPolicia.pop();
+            if (premioObj.p === "intercambio") {
+                document.getElementById('ciberpolicia-texto').innerText = premioObj.msg;
+                document.getElementById('btn-cerrar-policia').style.display = 'none';
+                hablar(premioObj.msg); prepararIntercambioPolicia();
+            } else {
+                equipos[turnoEquipo].pts += premioObj.p;
+                document.getElementById('ciberpolicia-texto').innerText = premioObj.msg;
+                document.getElementById('btn-cerrar-policia').style.display = 'block';
+                document.getElementById('intercambio-equipos-policia').style.display = 'none';
+                actualizarMarcadores(); hablar(premioObj.msg);
+            }
+        }
+
+        function prepararIntercambioPolicia() {
+            const area = document.getElementById('intercambio-equipos-policia'); const lista = document.getElementById('lista-intercambio-policia');
+            area.style.display = 'block'; lista.innerHTML = '';
+            equipos.forEach((eq, i) => {
+                if(i !== turnoEquipo) {
+                    const btn = document.createElement('button'); btn.className = 'btn-accion'; btn.style.fontSize = '1rem'; btn.style.padding = '8px 15px';
+                    btn.innerText = `Con ${eq.nombre} (${eq.pts} pts)`; btn.onclick = () => ejecutarIntercambioPolicia(i, eq.nombre);
+                    lista.appendChild(btn);
+                }
+            });
+            if(numEquipos < 2) { 
+                document.getElementById('ciberpolicia-texto').innerText = "Modo individual activo. Sin intercambio."; 
+                area.style.display = 'none'; document.getElementById('btn-cerrar-policia').style.display = 'block';
+            }
+        }
+
+        function ejecutarIntercambioPolicia(idxTarget, nombreTarget) {
+            playSfx('magic'); let temp = equipos[turnoEquipo].pts; equipos[turnoEquipo].pts = equipos[idxTarget].pts; equipos[idxTarget].pts = temp;
+            document.getElementById('intercambio-equipos-policia').style.display = 'none';
+            let finalMsg = `Transferencia completada con ${nombreTarget}. ¡Seguimos investigando en el sector de bioseguridad!`;
+            document.getElementById('ciberpolicia-texto').innerText = finalMsg; hablar(finalMsg);
+            actualizarMarcadores(); document.getElementById('btn-cerrar-policia').style.display = 'block';
+        }
+
+        function cerrarCiberPolicia() { document.getElementById('modal-ciberpolicia').style.display = 'none'; iniciarTimer(); }
+
+        function abrirModalRuleta() { 
+            clearInterval(timerInterval); window.speechSynthesis.cancel(); 
+            document.getElementById('btn-ruleta-container').style.display = 'none'; 
+            document.getElementById('modal-ruleta').style.display = 'flex'; 
+            document.getElementById('btn-tirar-ruleta').style.display = 'block'; 
+            document.getElementById('btn-cerrar-ruleta').style.display = 'none';
+            document.getElementById('intercambio-equipos-ruleta').style.display = 'none';
+            document.getElementById('ruleta-texto').innerText = "¡Gira la ruleta para conseguir suministros médicos o puntos!";
+            hablar("¡Gira la ruleta para conseguir suministros médicos o puntos!");
+        }
+
+        function girarRuleta() {
+            const giro = 3600 + Math.floor(Math.random()*360); 
+            document.getElementById('ruleta-fisica').style.transform = `rotate(${giro}deg)`;
+            document.getElementById('btn-tirar-ruleta').style.display = 'none';
+            document.getElementById('ruleta-texto').innerText = "¡Procesando el escáner...";
+            setTimeout(() => {
+                const premioObj = premiosRuleta[Math.floor(Math.random() * premiosRuleta.length)];
+                if (premioObj.p === "intercambio") {
+                    playSfx('magic'); document.getElementById('ruleta-texto').innerText = premioObj.msg;
+                    hablar(premioObj.msg); prepararIntercambioRuleta();
+                } else {
+                    if(premioObj.p > 0) playSfx('acierto'); else playSfx('error');
+                    equipos[turnoEquipo].pts += premioObj.p; if(equipos[turnoEquipo].pts < 0) equipos[turnoEquipo].pts = 0; 
+                    document.getElementById('ruleta-texto').innerText = premioObj.msg;
+                    actualizarMarcadores(); hablar(premioObj.msg);
+                    document.getElementById('btn-cerrar-ruleta').style.display = 'block';
+                }
+            }, 3000);
+        }
+
+        function prepararIntercambioRuleta() {
+            const area = document.getElementById('intercambio-equipos-ruleta'); const lista = document.getElementById('lista-intercambio-ruleta');
+            area.style.display = 'block'; lista.innerHTML = '';
+            equipos.forEach((eq, i) => {
+                if(i !== turnoEquipo) {
+                    const btn = document.createElement('button'); btn.className = 'btn-accion'; btn.style.fontSize = '1rem'; btn.style.padding = '8px 15px';
+                    btn.innerText = `Con ${eq.nombre} (${eq.pts} pts)`; btn.onclick = () => ejecutarIntercambioRuleta(i, eq.nombre);
+                    lista.appendChild(btn);
+                }
+            });
+            if(numEquipos < 2) { 
+                document.getElementById('ruleta-texto').innerText = "Modo individual activo. Sin intercambio."; 
+                area.style.display = 'none'; document.getElementById('btn-cerrar-ruleta').style.display = 'block';
+            }
+        }
+
+        function ejecutarIntercambioRuleta(idxTarget, nombreTarget) {
+            playSfx('magic'); let temp = equipos[turnoEquipo].pts; equipos[turnoEquipo].pts = equipos[idxTarget].pts; equipos[idxTarget].pts = temp;
+            document.getElementById('intercambio-equipos-ruleta').style.display = 'none';
+            let finalMsg = `Puntos intercambiados con ${nombreTarget}. ¡Trabajando en equipo en la misión de Resident Evil!`;
+            document.getElementById('ruleta-texto').innerText = finalMsg; hablar(finalMsg);
+            actualizarMarcadores(); document.getElementById('btn-cerrar-ruleta').style.display = 'block';
+        }
+
+        function cerrarRuleta() { document.getElementById('modal-ruleta').style.display = 'none'; iniciarTimer(); }
+
+        function mostrarRankingFinal() {
+            document.getElementById('screen-juego').classList.remove('active'); 
+            document.getElementById('screen-final').classList.add('active');
+            const cont = document.getElementById('contenedor-ranking'); cont.innerHTML = '';
+            const orden = [...equipos].sort((a,b) => b.pts - a.pts);
+            const medallas = ["🥇", "🥈", "🥉", "4º", "5º", "6º"];
+            orden.forEach((eq, i) => {
+                const fila = document.createElement('div');
+                fila.className = `rank-fila ${i===0?'rank-1':''}`; fila.style.borderLeftColor = eq.color;
+                fila.innerHTML = `<div>${medallas[i]} ${eq.nombre}</div><div>⭐ ${eq.pts} pts</div>`;
+                cont.appendChild(fila);
+            });
+            confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+            hablar("¡Misión cumplida! Felicidades por completar el gran cuestionario educativo de Resident Evil.");
+        }
+
+        function mostrarDiploma() {
+            window.speechSynthesis.cancel();
+            document.getElementById('screen-final').classList.remove('active');
+            document.getElementById('screen-diploma').classList.add('active');
+            confetti({ particleCount: 300, spread: 120, origin: { y: 0.5 } });
+            hablar("¡Enhorabuena! Habéis demostrado conocer a la perfección la historia de Resident Evil, comprendiendo el valor de la ética científica, la botánica curativa y el trabajo en equipo.");
+        }
+    </script>
+</body>
+</html>
